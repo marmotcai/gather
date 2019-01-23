@@ -1,0 +1,37 @@
+FROM atoml/cordova AS default
+
+MAINTAINER marmotcai "marmotcai@163.com"
+
+ARG SOURCEADDR=""
+ARG APPNAME=""
+
+ENV WORK_DIR /project
+
+ENV COMNAME cn.cloudgather
+ENV PACKAGENAME $COMNAME.$APPNAME
+
+WORKDIR $WORK_DIR
+
+RUN echo 'git clone $SOURCEADDR'
+RUN git config --global user.email "docker@atoml.com" && \
+	git config --global user.name "docker builder"
+
+RUN echo y | cordova create $APPNAME $PACKAGENAME $APPNAME && \
+	cd $APPNAME && cordova platform add android --save && \
+	rm -rf www && \
+	git clone $SOURCEADDR www
+
+ADD Configfile/SystemWebViewEngine.java $APPNAME/platforms/android/CordovaLib/src/org/apache/cordova/engine/SystemWebViewEngine.java
+ADD Configfile/$APPNAME-build.json $APPNAME/
+ADD Configfile/$APPNAME-key.keystore $APPNAME/
+ADD Configfile/mconfig.sh $APPNAME/
+ADD Configfile/$APPNAME-build.json $APPNAME/build.json
+
+WORKDIR $WORK_DIR/$APPNAME
+RUN cp -rf www/res/icon/android/. res/icon/android
+
+RUN sh mconfig.sh
+RUN echo y | cordova build android --release
+
+# RUN zipalign -v 4 platforms/android/app/build/outputs/apk/release/app-release.apk platforms/android/app/build/outputs/apk/release/$appname.apk
+# RUN cp -rf platforms/android/app/build/outputs/apk/release/$appname.apk $WORK_DIR/$appname.apk

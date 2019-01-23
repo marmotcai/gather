@@ -1,0 +1,10 @@
+{
+  "android": {
+    "release": {
+      "keystore": "hangu-key.keystore",
+      "alias": "hangu",
+      "storePassword": "hangu123456",
+      "password": "hangu123456"
+    }
+  }
+}

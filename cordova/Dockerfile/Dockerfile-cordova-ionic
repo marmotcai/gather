@@ -1,0 +1,28 @@
+FROM atoml/android-nodejs AS cordova
+
+ENV WORK_DIR /opt
+WORKDIR $WORK_DIR
+# ENV CORDOVA_VERSION 8.0.0
+# RUN npm i -g --unsafe-perm cordova@${CORDOVA_VERSION}
+RUN npm i -g --unsafe-perm cordova
+
+ARG APPNAME="exsample"
+ENV COMNAME com.atoml
+ENV PACKAGENAME $COMNAME.$APPNAME
+RUN echo y | cordova create $APPNAME $PACKAGENAME $APPNAME && \
+	cd $APPNAME && cordova platform add android --save && \
+	cordova requirements
+
+#################################################################################################
+
+
+FROM atoml/cordova AS ionic
+
+ENV IONIC_VERSION 4.5.0
+
+RUN apt-get update && apt-get install -y git bzip2 openssh-client && \
+    npm i -g --unsafe-perm ionic@${IONIC_VERSION} && \
+    ionic --no-interactive config set -g daemon.updates false && \
+    rm -rf /var/lib/apt/lists/* && apt-get clean
+
+WORKDIR $WORK_DIR

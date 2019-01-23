@@ -1,0 +1,29 @@
+FROM ubuntu:xenial AS base
+MAINTAINER marmotcai "marmotcai@163.com"
+
+ARG PROXY=""
+
+# RUN if [ ${PROXY} = "" ]; then \
+ENV ALL_PROXY sock5://${PROXY}
+# ;fi
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    TERM=xterm
+
+ADD Configfile/sources.list /etc/apt/
+
+RUN apt-get update && \
+    apt-get install -y wget vim openssh-server && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && \
+    apt-get autoremove -y && \
+    apt-get clean
+
+RUN sed -i 's/PermitRootLogin prohibit-password/PermitRootLogin yes/g' /etc/ssh/sshd_config && \
+	sed -i 's/PermitRootLogin without-password/PermitRootLogin yes/g' /etc/ssh/sshd_config && \
+	sed -i 's/UsePAM yes/UsePAM no/g' /etc/ssh/sshd_config && \
+	echo "root:112233" | chpasswd && \
+	mkdir /var/run/sshd
+
+EXPOSE 22
+
+CMD ["/usr/sbin/sshd", "-D"]
