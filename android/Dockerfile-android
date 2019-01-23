@@ -41,7 +41,7 @@ RUN rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && \
 
 #################################################################################################
 
-FROM atoml/android-sdk AS android-ndk
+FROM android-sdk AS android-ndk
 
 ENV WORK_DIR /opt
 
