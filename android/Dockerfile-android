@@ -1,5 +1,5 @@
 
-FROM atoml/java AS android-sdk
+FROM atoml/nodejs AS android-sdk
 
 MAINTAINER marmotcai "marmotcai@163.com"
 
