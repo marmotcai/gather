@@ -1,4 +1,4 @@
-FROM atoml/java AS nodejs
+FROM marmotcai/java AS nodejs
 
 ENV NODEJS_VERSION=8.15.0 \
     PATH=$PATH:/opt/node/bin

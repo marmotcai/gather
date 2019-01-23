@@ -1,4 +1,4 @@
-FROM atoml/base AS java
+FROM marmotcai/base AS java
 
 MAINTAINER marmotcai "marmotcai@163.com"
 
