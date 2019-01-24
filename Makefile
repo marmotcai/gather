@@ -55,5 +55,5 @@ make:
 
 push:
 
-.PHONY: help image make push
+.PHONY: help build-image image make push
 .SILENT:
