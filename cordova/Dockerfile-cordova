@@ -30,5 +30,10 @@ RUN echo y | cordova create $APPNAME $PACKAGENAME $APPNAME && \
 	cordova requirements && \
 	cordova build android --release
 
+ENV WORK_DIR /opt
+RUN rm -rf $APPNAME
+
+ENTRYPOINT [ "cordova", "--help" ]
+
 #################################################################################################
 
