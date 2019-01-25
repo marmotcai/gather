@@ -33,7 +33,7 @@ RUN echo y | cordova create $APPNAME $PACKAGENAME $APPNAME && \
 ENV WORK_DIR /opt
 RUN rm -rf $APPNAME
 
-ENTRYPOINT [ "cordova", "--help" ]
+# ENTRYPOINT [ "cordova", "--help" ]
 
 #################################################################################################
 
