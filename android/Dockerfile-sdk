@@ -34,7 +34,7 @@ RUN echo y | android update sdk -a -u -t platform-tools,${ANDROID_APIS},build-to
     chmod a+x -R $ANDROID_HOME && \
     chown -R root:root $ANDROID_HOME
 
- # Clean up
+# Clean up
 RUN rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && \
     apt-get autoremove -y && \
     apt-get clean

@@ -27,7 +27,8 @@ ENV COMNAME com.atoml
 ENV PACKAGENAME $COMNAME.$APPNAME
 RUN echo y | cordova create $APPNAME $PACKAGENAME $APPNAME && \
 	cd $APPNAME && cordova platform add android --save && \
-	cordova requirements
+	cordova requirements && \
+	cordova build android --release
 
 #################################################################################################
 
