@@ -3,13 +3,13 @@ default: help
 
 help:
 		echo "use: build-image name=xx tag=xx image=xx"
-		echo "    e.g: make build-image name=ubuntu tag=base image=atoml/base"
-		echo "         make build-image name=java tag=java image=atoml/java"
-		echo "         make build-image name=nodejs tag=nodejs image=atoml/nodejs"
-		echo "         make build-image name=android tag=android-sdk image=atoml/android-sdk"
-		echo "         make build-image name=android tag=android-ndk image=atoml/android-ndk"
-		echo "         make build-image name=cordova tag=cordova image=atoml/cordova"
-		echo "         make build-image name=ionic tag=ionic image=atoml/ionic"
+		echo "    e.g: make build-image name=ubuntu tag=base image=marmotcai/base"
+		echo "         make build-image name=java tag=java image=marmotcai/java"
+		echo "         make build-image name=android-sdk tag=android-sdk image=marmotcai/android-sdk"
+		echo "         make build-image name=android-ndk tag=android-ndk image=marmotcai/android-ndk"
+		echo "         make build-image name=nodejs tag=nodejs image=marmotcai/nodejs"
+		echo "         make build-image name=cordova tag=cordova image=marmotcai/cordova"
+		echo "         make build-image name=ionic tag=ionic image=marmotcai/ionic"
 		echo "use: build project url"
 		echo "    e.g: sh make.sh build http://git.atoml.com/taoyang/hangu-epg.git"
 		echo "use: test imagename"
@@ -27,17 +27,20 @@ build-image:
 	if [ "$(name)" = "java" ]; \
 		then DOCKERFILE_PATH="./base/Dockerfile-java" make image; fi
 
-	if [ "$(name)" = "nodejs" ]; \
-		then DOCKERFILE_PATH="./base/Dockerfile-nodejs" make image; fi
+	if [ "$(name)" = "android-sdk" ]; \
+		then DOCKERFILE_PATH="./android/Dockerfile-sdk" make image; fi
 
-	if [ "$(name)" = "android" ]; \
-		then DOCKERFILE_PATH="./android/Dockerfile-android" make image; fi
+	if [ "$(name)" = "android-ndk" ]; \
+		then DOCKERFILE_PATH="./android/Dockerfile-ndk" make image; fi
+
+	if [ "$(name)" = "nodejs" ]; \
+		then DOCKERFILE_PATH="./cordova/Dockerfile-cordova" make image; fi
 
 	if [ "$(name)" = "cordova" ]; \
-		then DOCKERFILE_PATH="./Dockerfile/Dockerfile-cordova-ionic" make image; fi
+		then DOCKERFILE_PATH="./cordova/Dockerfile-cordova" make image; fi
 
 	if [ "$(name)" = "ionic" ]; \
-		then DOCKERFILE_PATH="./Dockerfile/Dockerfile-cordova-ionic" make image; fi						
+		then DOCKERFILE_PATH="./cordova/Dockerfile-ionic" make image; fi						
 
 image:
 
@@ -48,10 +51,7 @@ image:
 
 make:
 
-	echo $(SOURCEADDR) '(' $(APPNAME) ')'
-
-	docker build --target default --build-arg SOURCEADDR=$(SOURCEADDR) --build-arg APPNAME=$(APPNAME) -t atoml/project -f ./Dockerfile/Dockerfile-project .
-	docker run --rm -ti atoml/project bash
+	# docker run --rm -ti -v $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))/script:/opt/script marmotcai/cordova /bin/bash
 
 push:
 
