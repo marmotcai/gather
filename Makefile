@@ -3,13 +3,15 @@ default: help
 
 help:
 		echo "use: build-image name=xx tag=xx image=xx"
-		echo "    e.g: make build-image name=ubuntu tag=base image=marmotcai/base"
+		echo "    e.g: make build-image name=ubuntu tag=base image=marmotcai/ubuntu-base"
+		echo "         make build-image name=centos tag=base image=marmotcai/centos-base"
 		echo "         make build-image name=java tag=java image=marmotcai/java"
 		echo "         make build-image name=android-sdk tag=android-sdk image=marmotcai/android-sdk"
 		echo "         make build-image name=android-ndk tag=android-ndk image=marmotcai/android-ndk"
 		echo "         make build-image name=nodejs tag=nodejs image=marmotcai/nodejs"
 		echo "         make build-image name=cordova tag=cordova image=marmotcai/cordova"
 		echo "         make build-image name=ionic tag=ionic image=marmotcai/ionic"
+		echo "         make build-image name=ceph-deploy tag=ceph-deploy image=marmotcai/ceph-deploy"
 		echo "use: build project url"
 		echo "    e.g: sh make.sh build http://git.atoml.com/taoyang/hangu-epg.git"
 		echo "use: test imagename"
@@ -23,6 +25,9 @@ build-image:
 
 	if [ "$(name)" = "ubuntu" ]; \
 		then DOCKERFILE_PATH="./base/Dockerfile-ubuntu-base" make image; fi
+	
+	if [ "$(name)" = "centos" ]; \
+		then DOCKERFILE_PATH="./base/Dockerfile-centos-base" make image; fi
 
 	if [ "$(name)" = "java" ]; \
 		then DOCKERFILE_PATH="./base/Dockerfile-java" make image; fi
@@ -41,6 +46,9 @@ build-image:
 
 	if [ "$(name)" = "ionic" ]; \
 		then DOCKERFILE_PATH="./cordova/Dockerfile-ionic" make image; fi						
+	
+	if [ "$(name)" = "ceph-deploy" ]; \
+		then DOCKERFILE_PATH="./ceph/Dockerfile-ceph-deploy" make image; fi						
 
 image:
 

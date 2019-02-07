@@ -1,4 +1,4 @@
-FROM marmotcai/base AS java
+FROM marmotcai/ubuntu-base AS java
 
 MAINTAINER marmotcai "marmotcai@163.com"
 
