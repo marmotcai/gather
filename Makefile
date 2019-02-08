@@ -14,7 +14,7 @@ help:
 		echo "         make build-image name=ceph-deploy tag=ceph-deploy image=marmotcai/ceph-deploy"
 		echo "use: build project url"
 		echo "    e.g: sh make.sh build http://git.atoml.com/taoyang/hangu-epg.git"
-		echo "use: test imagename"
+		echo "use: test image=xx"
 		echo "use: clean"
 
 build-image:
@@ -55,13 +55,14 @@ image:
 	echo $(name) '-' $(tag) '>>' $(image)
 	echo $(DOCKERFILE_PATH)
 
-	docker build --target $(tag) --build-arg CONFIGDIR=./config -t $(image) -f $(DOCKERFILE_PATH) .
+	# docker build --target $(tag) --build-arg CONFIGDIR=./config -t $(image) -f $(DOCKERFILE_PATH) .
+	docker build --target $(tag) -t $(image) -f $(DOCKERFILE_PATH) .
 
-make:
-
-	# docker run --rm -ti -v $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))/script:/opt/script marmotcai/cordova /bin/bash
-
+test:
+	# docker run --rm -ti $(image) /bin/bash
+	docker run --rm -ti -v $(shell pwd)/ceph/script:/root/script $(image) /bin/bash	
+	
 push:
 
-.PHONY: help build-image image make push
+.PHONY: help build-image image test push
 .SILENT:
