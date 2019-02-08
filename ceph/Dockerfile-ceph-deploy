@@ -13,7 +13,7 @@ RUN sed -i '/aliyuncs/d' /etc/yum.repos.d/CentOS-Base.repo && \
 RUN yum clean all && \
         yum makecache fast
 
-RUN yum update -y && sudo yum install ceph-deploy -y
+RUN yum update -y && sudo yum install -y ceph-deploy vim
 
 RUN useradd -d /home/cephuser -m cephuser && \
    	echo "cephuser:112233" | chpasswd

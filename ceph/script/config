@@ -1,6 +1,3 @@
-Host ceph-admin
-	Hostname ceph-admin 
-	User cephuser 
 Host mon1 
 	Hostname mon1 
 	User cephuser 
