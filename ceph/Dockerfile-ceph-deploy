@@ -15,38 +15,8 @@ RUN yum clean all && \
 
 RUN yum update -y && sudo yum install -y ceph-deploy vim
 
-RUN useradd -d /home/cephuser -m cephuser && \
-   	echo "cephuser:112233" | chpasswd
-
-RUN echo "cephuser ALL = (root) NOPASSWD:ALL" | tee /etc/sudoers.d/cephuser && \
-	chmod 0440 /etc/sudoers.d/cephuser && \
-	sed -i s'/Defaults requiretty/#Defaults requiretty'/g /etc/sudoers
-
 ENV WORK_DIR=/root
 WORKDIR $WORK_DIR
 
-# ENV PWDDIR=ceph
-
-# COPY ceph/script/hosts hosts
-# RUN cat hosts
-# RUN sudo cat hosts >> /etc/hosts
-# RUN cat /etc/hosts
-
-# RUN mkdir .ssh 
-# COPY ceph/script/config .ssh/config
-# RUN cat $WORK_DIR/.ssh/config 
-# RUN chmod 644 $WORK_DIR/.ssh/config
-
-# RUN sudo yum install -y ntp ntpdate ntp-doc && \
-	# sudo ntpdate time1.aliyun.com && \
-	# sudo hwclock --systohc && \
-	# sudo systemctl enable ntpd.service && \
-	# sudo systemctl start ntpd.service
-
-# RUN sed -i 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config
-
-# RUN systemctl stop firewalld && systemctl disable firewalld
-
-ADD ceph/script/entrypoint.sh .
-
+# ADD ceph/script/entrypoint.sh .
 # ENTRYPOINT ["entrypoint.sh"]
