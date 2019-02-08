@@ -33,7 +33,13 @@ sed -i s'/Defaults requiretty/#Defaults requiretty'/g /etc/sudoers
 
 echo "112233" | su - cephuser
 echo "y" | ssh-keygen -t rsa -P '' -f ~/.ssh/id_rsa
-sh copy_ssh_id.sh
+
+while read ip host pwd
+do
+  sshpass -p $pwd ssh-copy-id -o StrictHostKeyChecking=no root@$ip
+done < hosts
+
+# sh copy_ssh_id.sh
 
 #######################################################################
 
@@ -55,9 +61,11 @@ done < hosts
 
 ceph-deploy forgetkeys
 
-echo ${host_list}
+#echo ${host_list}
 
 #######################################################################
+mkdir cluster
+cd cluster
 
 cd ../
 rm -f authorized_keys
