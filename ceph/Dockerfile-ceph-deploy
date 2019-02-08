@@ -13,8 +13,8 @@ RUN sed -i '/aliyuncs/d' /etc/yum.repos.d/CentOS-Base.repo && \
 RUN yum clean all && \
         yum makecache fast
 
-RUN yum update -y && sudo yum install -y ceph-deploy vim sshpass
-RUN yum install http://mirrors.163.com/ceph/rpm-jewel/el7/noarch/ceph-deploy-1.5.38-0.noarch.rpm
+RUN yum update -y && sudo yum install -y vim sshpass
+RUN yum install -y http://mirrors.163.com/ceph/rpm-jewel/el7/noarch/ceph-deploy-1.5.38-0.noarch.rpm
 RUN ceph-deploy --version
 
 ENV WORK_DIR=/root
