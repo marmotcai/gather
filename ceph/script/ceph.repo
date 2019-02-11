@@ -1,27 +1,26 @@
 [Ceph]
 name=Ceph packages for $basearch
-baseurl=http://download.ceph.com/rpm-jewel/el7/$basearch
+baseurl=http://mirrors.163.com/ceph/rpm-jewel/el7/$basearch
 enabled=1
-gpgcheck=1
+gpgcheck=0
 type=rpm-md
-gpgkey=https://download.ceph.com/keys/release.asc
+gpgkey=https://mirrors.163.com/ceph/keys/release.asc
 priority=1
 
 [Ceph-noarch]
 name=Ceph noarch packages
-baseurl=http://download.ceph.com/rpm-jewel/el7/noarch
+baseurl=http://mirrors.163.com/ceph/rpm-jewel/el7/noarch
 enabled=1
-gpgcheck=1
+gpgcheck=0
 type=rpm-md
-gpgkey=https://download.ceph.com/keys/release.asc
+gpgkey=https://mirrors.163.com/ceph/keys/release.asc
 priority=1
 
 [ceph-source]
 name=Ceph source packages
-baseurl=http://download.ceph.com/rpm-jewel/el7/SRPMS
+baseurl=http://mirrors.163.com/ceph/rpm-jewel/el7/SRPMS
 enabled=1
-gpgcheck=1
+gpgcheck=0
 type=rpm-md
-gpgkey=https://download.ceph.com/keys/release.asc
+gpgkey=https://mirrors.163.com/ceph/keys/release.asc
 priority=1
-
