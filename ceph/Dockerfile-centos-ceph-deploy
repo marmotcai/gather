@@ -1,0 +1,29 @@
+FROM marmotcai/centos-base AS ceph-deploy
+MAINTAINER marmotcai "marmotcai@163.com"
+
+# RUN yum install -y subscription-manager # && \
+#	subscription-manager repos --enable=rhel-7-server-extras-rpms && \
+#	yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+
+RUN yum clean all && rm -rf /etc/yum.repos.d/*.repo
+RUN     wget -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo && \
+        wget -O /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-7.repo
+
+RUN sed -i '/aliyuncs/d' /etc/yum.repos.d/CentOS-Base.repo && \
+        sed -i 's/$releasever/7/g' /etc/yum.repos.d/CentOS-Base.repo && \
+        sed -i '/aliyuncs/d' /etc/yum.repos.d/epel.repo
+
+ADD ceph/ceph.repo /etc/yum.repos.d/ceph.repo
+
+RUN yum clean all && \
+        yum makecache fast
+
+RUN yum update -y && sudo yum install -y vim sshpass ceph-deploy.noarch
+# RUN yum install -y http://mirrors.163.com/ceph/rpm-jewel/el7/noarch/ceph-deploy-1.5.39-0.noarch.rpm
+RUN ceph-deploy --version
+
+ENV WORK_DIR=/root
+WORKDIR $WORK_DIR
+
+# ADD ceph/script/entrypoint.sh .
+# ENTRYPOINT ["entrypoint.sh"]

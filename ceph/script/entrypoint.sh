@@ -58,8 +58,8 @@ done < hosts
 
 echo ${host_list}
 
-ceph-deploy purge ${host_list}
 ceph-deploy purgedata ${host_list}
+ceph-deploy purge ${host_list}
 ceph-deploy forgetkeys
 
 ceph-deploy install ${host_list}

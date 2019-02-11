@@ -2,7 +2,7 @@
 default: help
 
 help:
-		echo "use: build-image name=xx tag=xx image=xx"
+		echo "use: make build-image name=xx tag=xx image=xx"
 		echo "    e.g: make build-image name=ubuntu tag=base image=marmotcai/ubuntu-base"
 		echo "         make build-image name=centos tag=base image=marmotcai/centos-base"
 		echo "         make build-image name=java tag=java image=marmotcai/java"
@@ -12,10 +12,10 @@ help:
 		echo "         make build-image name=cordova tag=cordova image=marmotcai/cordova"
 		echo "         make build-image name=ionic tag=ionic image=marmotcai/ionic"
 		echo "         make build-image name=ceph-deploy tag=ceph-deploy image=marmotcai/ceph-deploy"
-		echo "use: build project url"
-		echo "    e.g: sh make.sh build http://git.atoml.com/taoyang/hangu-epg.git"
-		echo "use: test image=xx"
-		echo "use: clean"
+		echo "use: make build projecturl"
+		echo "    e.g: make build http://git.atoml.com/taoyang/hangu-epg.git"
+		echo "use: make test image=xx"
+		echo "use: make clean image=xx"
 
 build-image:
 
@@ -48,7 +48,7 @@ build-image:
 		then DOCKERFILE_PATH="./cordova/Dockerfile-ionic" make image; fi						
 	
 	if [ "$(name)" = "ceph-deploy" ]; \
-		then DOCKERFILE_PATH="./ceph/Dockerfile-ceph-deploy" make image; fi						
+		then DOCKERFILE_PATH="./ceph/Dockerfile-centos-ceph-deploy" make image; fi						
 
 image:
 
