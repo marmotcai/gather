@@ -2,7 +2,42 @@
 
 echo "start deploy..."
 
+WORK_DIR=/root
+
 #######################################################################
+
+if [ ! -d "${WORK_DIR}/.ssh" ]; then
+  mkdir ${WORK_DIR}/.ssh
+  cp config ${WORK_DIR}/.ssh/config
+fi
+
+if [ ! -f "${WORK_DIR}/.ssh/id_rsa" ]; then
+  echo "y" | ssh-keygen -t rsa -P '' -f ${WORK_DIR}/.ssh/id_rsa
+  sh copy_ssh_id.sh
+fi
+
+while read ip host pwd
+do
+  host_list="${host_list} ${host}"
+
+  echo `ssh ${host} "yum install -y psmisc ntp"
+
+  result=`ssh ${host} "yum list installed | grep ceph"`
+  if [ -z "$result" ];then
+    echo "(${host}) ceph not installed"
+  else
+    ceph-deploy purgedata ${host}
+    ceph-deploy purge ${host}
+  fi
+  ceph-deploy install ${host}
+  
+done < hosts
+
+# ceph-deploy forgetkeys
+
+exit 0
+
+######################################################################
 
 # yum install -y ntp ntpdate ntp-doc 
 # ntpdate time1.aliyun.com
@@ -11,16 +46,6 @@ echo "start deploy..."
 # systemctl start ntpd.service
 
 # sed -i 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config
-
-cp ceph.repo /etc/yum.repos.d/ceph.repo
-
-yum clean all
-yum makecache fast
-
-#######################################################################
-
-mkdir ~/.ssh
-cp config ~/.ssh/config
 
 #######################################################################
 
@@ -35,34 +60,21 @@ cp config ~/.ssh/config
 
 #######################################################################
 
-echo "y" | ssh-keygen -t rsa -P '' -f ~/.ssh/id_rsa
-sh copy_ssh_id.sh
-
-#######################################################################
-
 # ssh root@ceph-admin 
 # systemctl stop firewalld 
 # systemctl disable firewalld
 
 #######################################################################
-
-while read ip host pwd
-do
-  host_list="${host_list} ${host}"
-
-#  ceph-deploy purge ${ip}
-#  ceph-deploy purgedata ${ip}
-
-#  ceph-deploy install ${ip}
-done < hosts
-
-echo ${host_list}
-
+ 
 ceph-deploy purgedata ${host_list}
 ceph-deploy purge ${host_list}
 ceph-deploy forgetkeys
 
 ceph-deploy install ${host_list}
+
+exit 0
+
+#######################################################################
 
 mkdir cluster
 cd cluster
