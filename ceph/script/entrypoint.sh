@@ -6,9 +6,36 @@ WORK_DIR=/root
 
 #######################################################################
 
+function fInstalled()
+{
+  result=`ssh -n ${1} "yum list installed | grep ${2}"`
+  # echo $result;
+
+  if [ -z "$result" ];then
+    return 0
+  else
+    return 1
+  fi
+}
+
+function fSSHInstall()
+{
+  fInstalled $1 $2
+  result=$?
+  if [ $result -eq "1" ]; then
+    echo "${2} is installed on ${1}"
+  else
+    echo "install ${2} to ${1}"
+    result=`ssh -n $1 "yum install -y $2"`
+  fi
+}
+
+#######################################################################
+
 if [ ! -d "${WORK_DIR}/.ssh" ]; then
   mkdir ${WORK_DIR}/.ssh
   cp config ${WORK_DIR}/.ssh/config
+  chmod 644 ${WORL_DIR}/.ssh/config
 fi
 
 if [ ! -f "${WORK_DIR}/.ssh/id_rsa" ]; then
@@ -16,26 +43,37 @@ if [ ! -f "${WORK_DIR}/.ssh/id_rsa" ]; then
   sh copy_ssh_id.sh
 fi
 
+#######################################################################
+
 while read ip host pwd
 do
   host_list="${host_list} ${host}"
+  echo "begin install to ${host}"
 
-  echo `ssh ${host} "yum install -y psmisc ntp"
-
-  result=`ssh ${host} "yum list installed | grep ceph"`
-  if [ -z "$result" ];then
-    echo "(${host}) ceph not installed"
-  else
-    ceph-deploy purgedata ${host}
-    ceph-deploy purge ${host}
-  fi
-  ceph-deploy install ${host}
+  fSSHInstall ${host} ntp
+  fSSHInstall ${host} psmisc
+  # # fSSHInstall ${host} ceph
   
+  ssh -n ${host} "killall -9 yum"
+  
+  fInstalled ${host} ceph
+  result=$?
+  if [ $result -eq "1" ]; then
+    result=`ssh -n ${host} "ceph --version"`
+    echo ${result}
+  else
+    echo "ceph is not installed"
+
+    # ceph-deploy purgedata ${host}
+    # ceph-deploy purge ${host}
+    # ceph-deploy install ${host}
+  fi
+
+  echo "${host} is install finished"  
 done < hosts
 
 # ceph-deploy forgetkeys
-
-exit 0
+# ceph-deploy install ${host_list}
 
 ######################################################################
 
@@ -65,28 +103,21 @@ exit 0
 # systemctl disable firewalld
 
 #######################################################################
- 
-ceph-deploy purgedata ${host_list}
-ceph-deploy purge ${host_list}
-ceph-deploy forgetkeys
 
-ceph-deploy install ${host_list}
+echo "begin initial ${host_list}"
 
-exit 0
+mkdir $WORK_DIR/cluster
+cd $WORK_DIR/cluster
 
-#######################################################################
-
-mkdir cluster
-cd cluster
 ceph-deploy new ${host_list}
 echo "public_network = 192.168.1.0/24" >> ceph.conf
 echo "osd_pool_default_size = 2" >> ceph.conf
 
-ceph-deploy mon create-initial
+ceph-deploy --overwrite-conf mon create-initial
 ceph-deploy gatherkeys mon1
 
 ######################################################################
-
+exit 0
 ceph-deploy disk list osd1 osd2
 
 ceph-deploy disk zap osd1:/dev/sdb osd2:/dev/sdb

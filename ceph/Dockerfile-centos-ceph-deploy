@@ -9,9 +9,9 @@ RUN yum clean all && rm -rf /etc/yum.repos.d/*.repo
 RUN     wget -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo && \
         wget -O /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-7.repo
 
-RUN sed -i '/aliyuncs/d' /etc/yum.repos.d/CentOS-Base.repo && \
-        sed -i 's/$releasever/7/g' /etc/yum.repos.d/CentOS-Base.repo && \
-        sed -i '/aliyuncs/d' /etc/yum.repos.d/epel.repo
+RUN     sed -i '/aliyuncs/d' /etc/yum.repos.d/CentOS-Base.repo && \
+        sed -i '/aliyuncs/d' /etc/yum.repos.d/epel.repo && \
+        sed -i 's/$releasever/7/g' /etc/yum.repos.d/CentOS-Base.repo
 
 ADD ceph/ceph.repo /etc/yum.repos.d/ceph.repo
 
