@@ -68,7 +68,7 @@ do
     # ceph-deploy purge ${host}
     # ceph-deploy install ${host}
   fi
-
+  ceph-deploy purgedata ${host}
   echo "${host} is install finished"  
 done < hosts
 

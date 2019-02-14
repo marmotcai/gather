@@ -18,7 +18,7 @@ ADD ceph/ceph.repo /etc/yum.repos.d/ceph.repo
 RUN yum clean all && \
         yum makecache fast
 
-RUN yum update -y && sudo yum install -y vim sshpass psmisc ceph-deploy.noarch
+RUN yum update -y && sudo yum install -y vim sshpass ceph-deploy.noarch
 # RUN yum install -y http://mirrors.163.com/ceph/rpm-jewel/el7/noarch/ceph-deploy-1.5.39-0.noarch.rpm
 RUN ceph-deploy --version
 
