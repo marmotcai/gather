@@ -2,7 +2,10 @@
 
 echo "start deploy..."
 
-WORK_DIR=/root
+USERNAME=cephuser
+PASSWORD=123456
+
+WORK_DIR=/home/${USERNAME}
 
 #######################################################################
 
@@ -30,12 +33,51 @@ function fSSHInstall()
   fi
 }
 
+function addIptables()
+{
+  host=$1
+  port=$2
+  ssh -tt ${host} << addiptables  
+    # sudo iptables -L -n --line-numbers | grep ${port} | awk '{print $1}' | xargs iptables -D INPUT
+    sudo iptables -A INPUT -p tcp --dport ${port} -j ACCEPT
+    iptables -nL --line-number | grep $port
+    # sudo service iptables save
+    exit
+addiptables
+}
+
+#######################################################################
+
+IsUser=""
+if [ ! -z "$IsUser" ];then
+  useradd -d ${WORK_DIR} -m ${USERNAME}
+  echo "${PASSWORD}" | passwd --stdin ${USERNAME}
+
+  echo "${USERNAME} ALL = (root) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/${USERNAME} 
+  chmod 0440 /etc/sudoers.d/${USERNAME}
+
+  sudo sed -i 's/Defaults    requiretty/Defaults:${USERNAME}    !requiretty/' /etc/sudoers
+
+  # echo ${PASSWORD} | && \
+  su - ${USERNAME}
+else
+  USERNAME=root
+  WORK_DIR=/${USERNAME}
+fi
+
 #######################################################################
 
 if [ ! -d "${WORK_DIR}/.ssh" ]; then
+  echo "build .ssh config file & copy ssh id"
   mkdir ${WORK_DIR}/.ssh
-  cp config ${WORK_DIR}/.ssh/config
-  chmod 644 ${WORL_DIR}/.ssh/config
+  while read ip host pwd
+  do
+    echo "Host ${host}" >> ${WORK_DIR}/.ssh/config
+    echo "  Hostname ${host}" >> ${WORK_DIR}/.ssh/config
+    echo "  User ${USERNAME}" >> ${WORK_DIR}/.ssh/config
+  done < hosts
+
+  chmod 644 ${WORK_DIR}/.ssh/config
 fi
 
 if [ ! -f "${WORK_DIR}/.ssh/id_rsa" ]; then
@@ -50,11 +92,15 @@ do
   host_list="${host_list} ${host}"
   echo "begin install to ${host}"
 
-  fSSHInstall ${host} ntp
-  fSSHInstall ${host} psmisc
+  # addIptables ${host} 6789
+  # addIptables ${host} 6800
+  # addIptables ${host} 7300
+
+  # fSSHInstall ${host} ntp
+  # fSSHInstall ${host} psmisc
   # # fSSHInstall ${host} ceph
   
-  ssh -n ${host} "killall -9 yum"
+  # ssh -n ${host} "killall -9 yum"
   
   fInstalled ${host} ceph
   result=$?
@@ -63,17 +109,30 @@ do
     echo ${result}
   else
     echo "ceph is not installed"
-
     # ceph-deploy purgedata ${host}
     # ceph-deploy purge ${host}
     # ceph-deploy install ${host}
   fi
-  ceph-deploy purgedata ${host}
-  echo "${host} is install finished"  
+  ssh -n ${host} "rm -rf /etc/ceph/*; rm -rf /var/lib/ceph/*"
+  echo "${host} is install finished"
 done < hosts
 
 # ceph-deploy forgetkeys
 # ceph-deploy install ${host_list}
+
+#######################################################################
+
+echo "begin initial ${host_list}"
+
+mkdir $WORK_DIR/cluster
+cd $WORK_DIR/cluster
+
+ceph-deploy new ${host_list}
+echo "public_network = 192.168.1.0/24" >> ceph.conf
+echo "osd_pool_default_size = 2" >> ceph.conf
+
+ceph-deploy --overwrite-conf mon create-initial
+ceph-deploy gatherkeys mon1
 
 ######################################################################
 
@@ -101,20 +160,6 @@ done < hosts
 # ssh root@ceph-admin 
 # systemctl stop firewalld 
 # systemctl disable firewalld
-
-#######################################################################
-
-echo "begin initial ${host_list}"
-
-mkdir $WORK_DIR/cluster
-cd $WORK_DIR/cluster
-
-ceph-deploy new ${host_list}
-echo "public_network = 192.168.1.0/24" >> ceph.conf
-echo "osd_pool_default_size = 2" >> ceph.conf
-
-ceph-deploy --overwrite-conf mon create-initial
-ceph-deploy gatherkeys mon1
 
 ######################################################################
 exit 0
