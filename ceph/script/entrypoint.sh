@@ -166,7 +166,7 @@ function deploy()
   echo "osd_pool_default_size = 2" >> ceph.conf
   
   ceph-deploy --overwrite-conf mon create-initial
-  ceph-deploy gatherkeys mon1
+  ceph-deploy --overwrite-conf gatherkeys mon1
   
   cd /root/script
 }
