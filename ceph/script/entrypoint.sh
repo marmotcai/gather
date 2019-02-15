@@ -106,7 +106,7 @@ function init()
 
 function install()
 {
-  host_list="${host_list} ${host}"
+  host=${1}
   echo "begin install to ${host}"
 
   addIptables ${host} 6789
@@ -165,6 +165,8 @@ function deploy()
   
   ceph-deploy --overwrite-conf mon create-initial
   ceph-deploy gatherkeys mon1
+  
+  cd /root/script
 }
 
 #######################################################################
@@ -185,7 +187,7 @@ case $cmd in
       while read ip host pwd
       do
         host_list="${host_list} ${host}"
-        install ${host_list} ${host} ${pwd}
+        install ${host}
       done < hosts
       echo "install ceph (${PWD}) to ${host_list}"
       # ceph-deploy install ${host_list}
