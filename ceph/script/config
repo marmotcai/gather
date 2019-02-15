@@ -1,9 +1,0 @@
-Host mon1 
-	Hostname mon1
-	User root
-Host osd1
-        Hostname osd1
-        User root
-Host osd2
-        Hostname osd2
-        User root
