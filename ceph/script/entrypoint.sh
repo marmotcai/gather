@@ -208,20 +208,6 @@ exit 0;
 
 #######################################################################
 
-echo "begin initial ${host_list}"
-
-mkdir $WORK_DIR/cluster
-cd $WORK_DIR/cluster
-
-ceph-deploy new ${host_list}
-echo "public_network = 192.168.1.0/24" >> ceph.conf
-echo "osd_pool_default_size = 2" >> ceph.conf
-
-ceph-deploy --overwrite-conf mon create-initial
-ceph-deploy gatherkeys mon1
-
-######################################################################
-
 # yum install -y ntp ntpdate ntp-doc 
 # ntpdate time1.aliyun.com
 # hwclock --systohc 

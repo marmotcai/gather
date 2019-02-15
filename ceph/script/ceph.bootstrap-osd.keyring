@@ -1,3 +1,0 @@
-[client.bootstrap-osd]
-	key = AQBQgmZcXAlALBAAIQt+rnCvu3NSLAeuwSiPQA==
-	caps mon = "allow profile bootstrap-osd"

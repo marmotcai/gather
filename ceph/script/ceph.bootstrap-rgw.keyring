@@ -1,3 +1,0 @@
-[client.bootstrap-rgw]
-	key = AQBSgmZcQ9OPNBAAolEfjwAWuPt6mPfLb4meoA==
-	caps mon = "allow profile bootstrap-rgw"
