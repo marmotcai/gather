@@ -112,6 +112,8 @@ function install()
   addIptables ${host} 6789
   addIptables ${host} 6800
   addIptables ${host} 7300
+  
+  ssh -n ${host} "systemctl stop firewalld; systemctl disable firewalld"
 
   # fSSHInstall ${host} ntp
   # # fSSHInstall ${host} ceph
