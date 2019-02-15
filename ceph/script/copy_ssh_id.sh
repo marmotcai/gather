@@ -1,15 +1,29 @@
 #!/bin/bash
 
+USERNAME=root
+WORK_DIR=/root
+
+if [ ! -z "${1}" ];then
+  USERNAME=${1}
+
+  if [ ${USERNAME} = "root" ];then
+    WORK_DIR=/root
+  else
+    WORK_DIR=/home/${1}
+  fi
+fi
+echo "copy ssh ${USERNAME}(${WORK_DIR}) id to hosts"
+
 rm -f ./authorized_keys; touch ./authorized_keys
 sed -i '/StrictHostKeyChecking/s/^#//; /StrictHostKeyChecking/s/ask/no/' /etc/ssh/ssh_config
 sed -i "/#UseDNS/ s/^#//; /UseDNS/ s/yes/no/" /etc/ssh/sshd_config
 
 cat hosts | while read ip host pwd; do
-  sshpass -p $pwd ssh-copy-id -f $ip 2>/dev/null
-  ssh -nq $ip "hostnamectl set-hostname $host"
-  ssh -nq $ip "echo -e 'y\n' | ssh-keygen -q -f ~/.ssh/id_rsa -t rsa -N ''"
+  sshpass -p $pwd ssh-copy-id -i ${WORK_DIR}/.ssh/id_rsa.pub -f ${USERNAME}@$ip 2>/dev/null
+  ssh -nq ${USERNAME}@$ip "hostnamectl set-hostname $host"
+  ssh -nq ${USERNAME}@$ip "echo -e 'y\n' | ssh-keygen -q -f ~/.ssh/id_rsa -t rsa -N ''"
   echo "===== Copy id_rsa.pub of $ip ====="
-  scp $ip:/root/.ssh/id_rsa.pub ./$host-id_rsa.pub
+  scp ${USERNAME}@$ip:${WORK_DIR}/.ssh/id_rsa.pub ./$host-id_rsa.pub
   cat ./$host-id_rsa.pub >> ./authorized_keys
   echo $ip $host >> /etc/hosts
 done
@@ -18,10 +32,10 @@ cat ~/.ssh/id_rsa.pub >> ./authorized_keys
 cat hosts | while read ip host pwd; do
   rm -f ./$host-id_rsa.pub
   echo "===== Copy authorized_keys to $ip ====="
-  scp ./authorized_keys $ip:/root/.ssh/
-  scp /etc/hosts $ip:/etc/
-  scp /etc/ssh/ssh_config $ip:/etc/ssh/ssh_config
-  scp /etc/ssh/sshd_config $ip:/etc/ssh/sshd_config
-  ssh -nq $ip "systemctl restart sshd"
+  scp ./authorized_keys ${USERNAME}@$ip:${WORK_DIR}/.ssh/
+  scp /etc/hosts ${USERNAME}@$ip:/etc/
+  scp /etc/ssh/ssh_config ${USERNAME}@$ip:/etc/ssh/ssh_config
+  scp /etc/ssh/sshd_config ${USERNAME}@$ip:/etc/ssh/sshd_config
+  ssh -nq ${USERNAME}@$ip "systemctl restart sshd"
 done
 

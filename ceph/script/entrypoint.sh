@@ -1,8 +1,8 @@
 #!/bin/bash
-
-echo "start deploy..."
-
-WORK_DIR=/root
+echo "${0} ${1} ${2} ${3}"
+PASSWORD=123456
+USERNAME=root
+WORK_DIR=/${USERNAME}
 
 #######################################################################
 
@@ -30,50 +30,191 @@ function fSSHInstall()
   fi
 }
 
-#######################################################################
+function addIptables()
+{
+  host=$1
+  port=$2
+  ssh -tt ${host} << addiptables  
+    # sudo iptables -L -n --line-numbers | grep ${port} | awk '{print $1}' | xargs iptables -D INPUT
+    sudo iptables -D INPUT -p tcp --dport ${port} -j ACCEPT
+    sudo iptables -A INPUT -p tcp --dport ${port} -j ACCEPT
+    iptables -nL --line-number | grep $port
+    # sudo service iptables save
+    exit
+addiptables
+}
 
-if [ ! -d "${WORK_DIR}/.ssh" ]; then
-  mkdir ${WORK_DIR}/.ssh
-  cp config ${WORK_DIR}/.ssh/config
-  chmod 644 ${WORL_DIR}/.ssh/config
-fi
+function clean()
+{
+  rm -f ./ceph-deploy-ceph.log
+  if [ ! -z "${1}" ];then
+    USERNAME=${1}
+    WORK_DIR=/home/${1}
 
-if [ ! -f "${WORK_DIR}/.ssh/id_rsa" ]; then
-  echo "y" | ssh-keygen -t rsa -P '' -f ${WORK_DIR}/.ssh/id_rsa
-  sh copy_ssh_id.sh
-fi
+    echo "clean the user files (${USERNAME})"
+    userdel ${USERNAME}
+    rm -f /etc/sudoers.d/${USERNAME}
+  else
+    echo "clean the root files (${USERNAME})"
+    USERNAME=root
+    WORK_DIR=/${USERNAME}
+  fi
+  rm -rf ${WORK_DIR}/.ssh
+  rm -rf ${WORK_DIR}/cluster
+}
 
-#######################################################################
+function init()
+{
+  if [ ! -z "${1}" ];then
+    USERNAME=${1}
+    WORK_DIR=/home/${1}
+  
+    useradd -d ${WORK_DIR} -m ${USERNAME}
+    echo "${PASSWORD}" | passwd --stdin ${USERNAME}
 
-while read ip host pwd
-do
+    echo "${USERNAME} ALL = (root) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/${USERNAME} 
+    chmod 0440 /etc/sudoers.d/${USERNAME}
+
+    sudo sed -i 's/Defaults    requiretty/Defaults:${USERNAME}    !requiretty/' /etc/sudoers
+
+    # echo ${PASSWORD} | && \
+    # su - ${USERNAME}
+  else
+    USERNAME=root
+    WORK_DIR=/root
+  fi
+  
+  if [ ! -d "${WORK_DIR}/.ssh" ]; then
+    echo "build .ssh config file & copy ssh id"
+    mkdir ${WORK_DIR}/.ssh
+    while read ip host pwd
+    do
+      echo "Host ${host}" >> ${WORK_DIR}/.ssh/config
+      echo "  Hostname ${host}" >> ${WORK_DIR}/.ssh/config
+      echo "  User ${USERNAME}" >> ${WORK_DIR}/.ssh/config
+    done < hosts
+
+    chmod 644 ${WORK_DIR}/.ssh/config
+  fi
+
+  if [ ! -f "${WORK_DIR}/.ssh/id_rsa" ]; then
+    echo "y" | ssh-keygen -t rsa -P '' -f ${WORK_DIR}/.ssh/id_rsa
+    sh copy_ssh_id.sh ${USERNAME}
+  fi
+  echo "init to ${WORK_DIR} finished"
+}
+
+function install()
+{
   host_list="${host_list} ${host}"
   echo "begin install to ${host}"
 
-  fSSHInstall ${host} ntp
-  fSSHInstall ${host} psmisc
+  addIptables ${host} 6789
+  addIptables ${host} 6800
+  addIptables ${host} 7300
+
+  # fSSHInstall ${host} ntp
   # # fSSHInstall ${host} ceph
-  
-  ssh -n ${host} "killall -9 yum"
-  
-  fInstalled ${host} ceph
+  # # fSSHInstall ${host} psmisc
+  # # ssh -n ${host} "killall -9 yum"
+
+  fInstalled ${host} ceph-release
   result=$?
   if [ $result -eq "1" ]; then
     result=`ssh -n ${host} "ceph --version"`
     echo ${result}
   else
     echo "ceph is not installed"
-
-    # ceph-deploy purgedata ${host}
-    # ceph-deploy purge ${host}
-    # ceph-deploy install ${host}
+    ceph-deploy install ${host}
   fi
-  ceph-deploy purgedata ${host}
-  echo "${host} is install finished"  
-done < hosts
+  echo "${host} is install finished"
+}
 
-# ceph-deploy forgetkeys
-# ceph-deploy install ${host_list}
+function uninstall()
+{
+  host_list=""
+  while read ip host pwd
+  do
+    host_list="${host_list} ${host}"
+    # ssh -n ${host} "rm -rf /etc/ceph/*; rm -rf /var/lib/ceph/*"
+  done < hosts
+
+  if [ ! -z "${host_list}" ];then
+    ceph-deploy purge ${host_list}
+    ceph-deploy purgedata ${host_list}
+    ceph-deploy forgetkeys
+  fi
+}
+
+function deploy()
+{
+  host_list=""
+  while read ip host pwd
+  do
+    host_list="${host_list} ${host}"
+  done < hosts
+ 
+  echo "ceph-deploy (${PWD}) to ${host_list}"
+
+  mkdir $WORK_DIR/cluster
+  cd $WORK_DIR/cluster
+
+  ceph-deploy new ${host_list}
+  echo "public_network = 192.168.1.0/24" >> ceph.conf
+  echo "osd_pool_default_size = 2" >> ceph.conf
+  
+  ceph-deploy --overwrite-conf mon create-initial
+  ceph-deploy gatherkeys mon1
+}
+
+#######################################################################
+
+cmd=${1}
+param1=${2}
+case $cmd in 
+    clean)
+      clean ${param1}
+    ;;
+
+    init)
+      init ${param1}
+    ;;
+
+    install)
+      host_list=""
+      while read ip host pwd
+      do
+        host_list="${host_list} ${host}"
+        install ${host_list} ${host} ${pwd}
+      done < hosts
+      echo "install ceph (${PWD}) to ${host_list}"
+      # ceph-deploy install ${host_list}
+    ;;
+
+    uninstall)
+      uninstall
+    ;;
+    
+    deploy)
+      deploy
+    ;;
+esac
+
+exit 0;
+
+#######################################################################
+
+echo "begin initial ${host_list}"
+
+mkdir $WORK_DIR/cluster
+cd $WORK_DIR/cluster
+
+ceph-deploy new ${host_list}
+echo "public_network = 192.168.1.0/24" >> ceph.conf
+echo "osd_pool_default_size = 2" >> ceph.conf
+
+ceph-deploy --overwrite-conf mon create-initial
+ceph-deploy gatherkeys mon1
 
 ######################################################################
 
@@ -101,20 +242,6 @@ done < hosts
 # ssh root@ceph-admin 
 # systemctl stop firewalld 
 # systemctl disable firewalld
-
-#######################################################################
-
-echo "begin initial ${host_list}"
-
-mkdir $WORK_DIR/cluster
-cd $WORK_DIR/cluster
-
-ceph-deploy new ${host_list}
-echo "public_network = 192.168.1.0/24" >> ceph.conf
-echo "osd_pool_default_size = 2" >> ceph.conf
-
-ceph-deploy --overwrite-conf mon create-initial
-ceph-deploy gatherkeys mon1
 
 ######################################################################
 exit 0
