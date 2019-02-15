@@ -1,0 +1,3 @@
+[client.bootstrap-mds]
+	key = AQBWgmZcE4PfDRAAZZG7yLX/g0R3Ggh9fypkZg==
+	caps mon = "allow profile bootstrap-mds"
