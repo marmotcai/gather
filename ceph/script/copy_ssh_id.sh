@@ -20,7 +20,7 @@ rm -f ${keysfile}; touch ${keysfile}
 sed -i '/StrictHostKeyChecking/s/^#//; /StrictHostKeyChecking/s/ask/no/' /etc/ssh/ssh_config
 sed -i "/#UseDNS/ s/^#//; /UseDNS/ s/yes/no/" /etc/ssh/sshd_config
 
-cat hosts | while read ip host pwd; do
+cat hosts | while read ip host pwd dev; do
   sshpass -p $pwd ssh-copy-id -i ${WORK_DIR}/.ssh/id_rsa.pub -f ${USERNAME}@$ip 2>/dev/null
   ssh -nq ${USERNAME}@$ip "hostnamectl set-hostname $host"
   ssh -nq ${USERNAME}@$ip "echo -e 'y\n' | ssh-keygen -q -f ~/.ssh/id_rsa -t rsa -N ''"
@@ -31,7 +31,7 @@ cat hosts | while read ip host pwd; do
 done
 
 cat ~/.ssh/id_rsa.pub >> ${keysfile}
-cat hosts | while read ip host pwd; do
+cat hosts | while read ip host pwd dev; do
   rm -f ./$host-id_rsa.pub
   echo "===== Copy authorized_keys to $ip ====="
   scp ${keysfile} ${USERNAME}@$ip:${WORK_DIR}/.ssh/

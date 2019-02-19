@@ -3,6 +3,8 @@ echo "${0} ${1} ${2} ${3}"
 PASSWORD=123456
 USERNAME=root
 WORK_DIR=/${USERNAME}
+CEPH_WORK_DIR=$WORK_DIR/cluster
+SCRIPT_WORK_DIR=/root/script
 
 #######################################################################
 
@@ -84,23 +86,36 @@ function init()
     WORK_DIR=/root
   fi
   
-  if [ ! -d "${WORK_DIR}/.ssh" ]; then
+  if [ ! -f "${WORK_DIR}/.ssh/id_rsa" ]; then
+    echo "y" | ssh-keygen -t rsa -P '' -f ${WORK_DIR}/.ssh/id_rsa
+    sh copy_ssh_id.sh ${USERNAME}
+  fi
+
+  if [ ! -f "${WORK_DIR}/.ssh/config" ]; then
     echo "build .ssh config file & copy ssh id"
     mkdir ${WORK_DIR}/.ssh
-    while read ip host pwd
+    while read ip host pwd dev
     do
       echo "Host ${host}" >> ${WORK_DIR}/.ssh/config
       echo "  Hostname ${host}" >> ${WORK_DIR}/.ssh/config
       echo "  User ${USERNAME}" >> ${WORK_DIR}/.ssh/config
+
+      addIptables ${host} 6789
+      addIptables ${host} 6800
+      addIptables ${host} 7300
+
+      ssh -n ${host} "systemctl stop firewalld; systemctl disable firewalld"
+
+      # fSSHInstall ${host} ntp
+      # # fSSHInstall ${host} ceph
+      # # fSSHInstall ${host} psmisc
+      # # ssh -n ${host} "killall -9 yum"
+    
     done < hosts
 
     chmod 644 ${WORK_DIR}/.ssh/config
   fi
 
-  if [ ! -f "${WORK_DIR}/.ssh/id_rsa" ]; then
-    echo "y" | ssh-keygen -t rsa -P '' -f ${WORK_DIR}/.ssh/id_rsa
-    sh copy_ssh_id.sh ${USERNAME}
-  fi
   echo "init to ${WORK_DIR} finished"
 }
 
@@ -108,17 +123,6 @@ function install()
 {
   host=${1}
   echo "begin install to ${host}"
-
-  addIptables ${host} 6789
-  addIptables ${host} 6800
-  addIptables ${host} 7300
-  
-  ssh -n ${host} "systemctl stop firewalld; systemctl disable firewalld"
-
-  # fSSHInstall ${host} ntp
-  # # fSSHInstall ${host} ceph
-  # # fSSHInstall ${host} psmisc
-  # # ssh -n ${host} "killall -9 yum"
 
   fInstalled ${host} ceph-release
   result=$?
@@ -135,7 +139,7 @@ function install()
 function uninstall()
 {
   host_list=""
-  while read ip host pwd
+  while read ip host pwd dev
   do
     host_list="${host_list} ${host}"
     # ssh -n ${host} "rm -rf /etc/ceph/*; rm -rf /var/lib/ceph/*"
@@ -151,15 +155,15 @@ function uninstall()
 function deploy()
 {
   host_list=""
-  while read ip host pwd
+  while read ip host pwd dev
   do
     host_list="${host_list} ${host}"
   done < hosts
  
   echo "ceph-deploy (${PWD}) to ${host_list}"
 
-  mkdir $WORK_DIR/cluster
-  cd $WORK_DIR/cluster
+  mkdir $CEPH_WORK_DIR
+  cd $CEPH_WORK_DIR
 
   ceph-deploy new ${host_list}
   echo "public_network = 192.168.1.0/24" >> ceph.conf
@@ -167,8 +171,38 @@ function deploy()
   
   ceph-deploy --overwrite-conf mon create-initial
   ceph-deploy --overwrite-conf gatherkeys mon1
-  
-  cd /root/script
+ 
+  ceph-deploy admin mon1
+  ceph-depoly rgw create mon1
+ 
+  cd $SCRIPT_WORK_DIR
+}
+
+#######################################################################
+function initmon()
+{
+  host=${1}
+
+  fSSHInstall ${host} s3cmd
+}
+
+function initosd()
+{
+  host=${1}
+  dev=${2}
+
+  if [ -z "${host}" ] || [ -z "${dev}" ]; then
+    echo "missing the parameter"
+  else
+    echo "init osd ($host,$dev)"
+    cd $CEPH_WORK_DIR    
+    ceph-deploy --ceph-conf=$CEPH_WORK_DIR/ceph.conf disk zap $host:$dev
+    ceph-deploy --ceph-conf=$CEPH_WORK_DIR/ceph.conf osd prepare $host:$dev
+    ceph-deploy --ceph-conf=$CEPH_WORK_DIR/ceph.conf osd activate $host:$dev
+
+    ceph-deploy disk list $host
+    cd $SCRIPT_WORK_DIR
+  fi
 }
 
 #######################################################################
@@ -186,7 +220,7 @@ case $cmd in
 
     install)
       host_list=""
-      while read ip host pwd
+      while read ip host pwd dev
       do
         host_list="${host_list} ${host}"
         install ${host}
@@ -202,6 +236,20 @@ case $cmd in
     deploy)
       deploy
     ;;
+
+    initnode)
+      while read ip host pwd dev
+      do
+      if [ `expr match $host "mon" ` -ne 0 ]; then
+        initmon $host
+      else
+      if [ `expr match $host "osd" ` -ne 0 ]; then
+        initosd $host $dev
+      fi
+      fi
+      done < hosts
+
+
 esac
 
 exit 0;
