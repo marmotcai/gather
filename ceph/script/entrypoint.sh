@@ -145,10 +145,10 @@ function init()
       echo "  User ${USERNAME}" >> ${CONFIG_PATH}
 
       addIptables ${host} 6789
-      #addIptables ${host} 6800
-      #addIptables ${host} 7300
+      addIptables ${host} 6800
+      addIptables ${host} 7300
 
-      #ssh -n ${host} "systemctl stop firewalld; systemctl disable firewalld"
+      ssh -n root@${host} "systemctl stop firewalld; systemctl disable firewalld"
 
       # fSSHInstall ${host} ntp
       # # fSSHInstall ${host} ceph
@@ -157,7 +157,7 @@ function init()
     
     done < hosts
 
-    chmod 644 ${WORK_DIR}/.ssh/config
+    chmod 644 ${CONFIG_PATH}
   fi
 
   echo "init to ${WORK_DIR} finished" 
