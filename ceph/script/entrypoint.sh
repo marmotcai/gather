@@ -36,7 +36,7 @@ function addIptables()
 {
   host=$1
   port=$2
-  ssh -tt ${host} << addiptables  
+  ssh -tt root@${host} << addiptables  
     # sudo iptables -L -n --line-numbers | grep ${port} | awk '{print $1}' | xargs iptables -D INPUT
     sudo iptables -D INPUT -p tcp --dport ${port} -j ACCEPT
     sudo iptables -A INPUT -p tcp --dport ${port} -j ACCEPT
@@ -48,7 +48,11 @@ addiptables
 
 function clean()
 {
-  rm -f ./ceph-deploy-ceph.log
+  USERNAME=root
+  WORK_DIR=/root
+  echo "clean the root files (${USERNAME})"
+  rm -rf ${WORK_DIR}/.ssh
+
   if [ ! -z "${1}" ];then
     USERNAME=${1}
     WORK_DIR=/home/${1}
@@ -56,55 +60,95 @@ function clean()
     echo "clean the user files (${USERNAME})"
     userdel ${USERNAME}
     rm -f /etc/sudoers.d/${USERNAME}
-  else
-    echo "clean the root files (${USERNAME})"
-    USERNAME=root
-    WORK_DIR=/${USERNAME}
+    rm -rf ${WORK_DIR}/.ssh
+    rm -rf ${WORK_DIR}
   fi
-  rm -rf ${WORK_DIR}/.ssh
+
   rm -rf ${WORK_DIR}/cluster
+
+  rm -f ./*.log
+}
+
+function addUser()
+{
+  host=${1}
+  username=${2}
+  password=${3}
+  workdir=/home/${username}
+
+  if  [[ ${username} = 'root' ]]; then
+    echo "root user can't add to ${host}"
+    exit
+  fi
+  
+  ssh -tt root@${host} << adduser  
+    echo "add user (${host} ${username} ${password})"
+    
+    sudo userdel ${username}
+    sudo rm -f /etc/sudoers.d/${USERNAME}
+    sudo rm -rf ${WORK_DIR}
+    
+    sudo useradd -d ${workdir} -m ${username}
+    echo "${passwrod}" | sudo passwd --stdin ${username}
+
+    echo "${username} ALL = (root) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/${username}
+    sudo chmod 0440 /etc/sudoers.d/${username}
+
+    sudo sed -i 's/Defaults    requiretty/Defaults:${username}    !requiretty/' /etc/sudoers
+    
+    exit
+adduser
 }
 
 function init()
 {
+  USERNAME=root
+  WORK_DIR=/root
+  CONFIG_PATH=${WORK_DIR}/.ssh/config
+
+  if [ ! -f "${WORK_DIR}/.ssh/id_rsa" ]; then
+    echo "y" | ssh-keygen -t rsa -P '' -f ${WORK_DIR}/.ssh/id_rsa
+    sh copy_ssh_id.sh ${USERNAME}
+  fi
+
   if [ ! -z "${1}" ];then
     USERNAME=${1}
     WORK_DIR=/home/${1}
-  
+  fi
+
+  if  [[ ${USERNAME} != 'root' ]]; then
+    echo "add user (${USERNAME})"
+
     useradd -d ${WORK_DIR} -m ${USERNAME}
     echo "${PASSWORD}" | passwd --stdin ${USERNAME}
 
-    echo "${USERNAME} ALL = (root) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/${USERNAME} 
+    echo "${USERNAME} ALL = (root) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/${USERNAME}
     chmod 0440 /etc/sudoers.d/${USERNAME}
 
     sudo sed -i 's/Defaults    requiretty/Defaults:${USERNAME}    !requiretty/' /etc/sudoers
 
     # echo ${PASSWORD} | && \
     # su - ${USERNAME}
-  else
-    USERNAME=root
-    WORK_DIR=/root
   fi
   
-  if [ ! -f "${WORK_DIR}/.ssh/id_rsa" ]; then
-    echo "y" | ssh-keygen -t rsa -P '' -f ${WORK_DIR}/.ssh/id_rsa
-    sh copy_ssh_id.sh ${USERNAME}
-  fi
-
-  if [ ! -f "${WORK_DIR}/.ssh/config" ]; then
-    echo "build .ssh config file & copy ssh id"
-    mkdir ${WORK_DIR}/.ssh
+  if [ ! -f "${CONFIG_PATH}" ]; then
+    echo "build .ssh config file"
+    rm -f ${CONFIG_PATH}; touch ${CONFIG_PATH}
     while read ip host pwd dev
     do
-      echo "Host ${host}" >> ${WORK_DIR}/.ssh/config
-      echo "  Hostname ${host}" >> ${WORK_DIR}/.ssh/config
-      echo "  User ${USERNAME}" >> ${WORK_DIR}/.ssh/config
+      if  [[ ${USERNAME} != 'root' ]]; then
+        addUser ${host} ${USERNAME} ${pwd} 
+      fi
+      
+      echo "Host ${host}" >> ${CONFIG_PATH}
+      echo "  Hostname ${host}" >> ${CONFIG_PATH}
+      echo "  User ${USERNAME}" >> ${CONFIG_PATH}
 
       addIptables ${host} 6789
-      addIptables ${host} 6800
-      addIptables ${host} 7300
+      #addIptables ${host} 6800
+      #addIptables ${host} 7300
 
-      ssh -n ${host} "systemctl stop firewalld; systemctl disable firewalld"
+      #ssh -n ${host} "systemctl stop firewalld; systemctl disable firewalld"
 
       # fSSHInstall ${host} ntp
       # # fSSHInstall ${host} ceph
@@ -116,7 +160,7 @@ function init()
     chmod 644 ${WORK_DIR}/.ssh/config
   fi
 
-  echo "init to ${WORK_DIR} finished"
+  echo "init to ${WORK_DIR} finished" 
 }
 
 function install()
@@ -131,7 +175,30 @@ function install()
     echo ${result}
   else
     echo "ceph is not installed"
-    ceph-deploy install ${host}
+
+    installstr=""
+    if [[ $host =~ 'mon' ]]; then
+      installstr="${installstr} --mon"
+    fi
+
+    if [[ $host =~ 'mgr' ]]; then
+      installstr="${installstr} --mgr"
+    fi
+
+    if [[ $host =~ 'mds' ]]; then
+      installstr="${installstr} --mds"
+    fi
+
+    if [[ $host =~ 'rgw' ]]; then
+      installstr="${installstr} --rgw"
+    fi
+
+    if [[ $host =~ 'osd' ]]; then
+      installstr="${installstr} --osd"
+    fi
+
+    echo "install ${host} (${installstr})"
+    ceph-deploy install ${host} ${installstr}
   fi
   echo "${host} is install finished"
 }
@@ -238,17 +305,17 @@ case $cmd in
     ;;
 
     initnode)
-      while read ip host pwd dev
-      do
-      if [ `expr match $host "mon" ` -ne 0 ]; then
-        initmon $host
-      else
-      if [ `expr match $host "osd" ` -ne 0 ]; then
-        initosd $host $dev
-      fi
-      fi
-      done < hosts
-
+      #while read ip host pwd dev
+      #do
+      # if [ `expr match $host "mon" ` -ne 0 ]; then
+      #  initmon $host
+      #else
+      #if [ `expr match $host "osd" ` -ne 0 ]; then
+      #  initosd $host $dev
+      #fi
+      #fi
+      #done < hosts
+    ;;
 
 esac
 
