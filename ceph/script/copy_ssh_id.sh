@@ -34,6 +34,9 @@ cat hosts | while read ip port host pwd param; do
     cat ./$host-id_rsa.pub >> ${keysfile}
     
     echo $ip $host >> /etc/hosts
+  else
+    sshpass -p $pwd ssh-copy-id -i ${WORK_DIR}/.ssh/id_rsa.pub -f root@$ip 2>/dev/null
+    sudo sshpass -p $pwd ssh-copy-id -i /root/.ssh/id_rsa.pub -f ${USERNAME}@$ip 2>/dev/null
   fi
 done
 

@@ -10,6 +10,7 @@ SCRIPT_WORK_DIR=/root/script
 
 function fInstalled()
 {
+  echo ssh -n ${1} "yum list installed | grep ${2}"
   result=`ssh -n ${1} "yum list installed | grep ${2}"`
   # echo $result;
 
@@ -62,6 +63,15 @@ function clean()
     rm -f /etc/sudoers.d/${USERNAME}
     rm -rf ${WORK_DIR}/.ssh
     rm -rf ${WORK_DIR}
+
+    # while read ip port host pwd param
+    # do
+    #   ssh -tt ${host} << deluser
+    #     sudo userdel ${username}
+    #     sudo rm -f /etc/sudoers.d/${USERNAME}
+    #     sudo rm -rf ${WORK_DIR}
+# deluser
+    #  done < hosts
   fi
 
   rm -rf ${WORK_DIR}/cluster
@@ -107,6 +117,41 @@ function init()
   CONFIG_PATH=/root/.ssh/config
 
   rm -rf ${WORK_DIR}/.ssh; mkdir -p ${WORK_DIR}/.ssh
+  if [ ! -f "${WORK_DIR}/.ssh/id_rsa" ]; then
+    echo "y" | ssh-keygen -t rsa -P '' -f "${WORK_DIR}/.ssh/id_rsa"
+    sh copy_ssh_id.sh
+
+    while read ip port host pwd param
+    do
+      delUser ${host} ${USERNAME} ${pwd}
+    done < hosts 
+  fi
+
+  if [ ! -z "${1}" ];then
+    USERNAME=${1}
+    WORK_DIR=/home/${1}
+    # CONFIG_PATH=${WORK_DIR}/.ssh/config
+    
+    echo "add user ($USERNAME)"
+    useradd -d ${WORK_DIR} -m ${USERNAME}
+    echo "${PASSWORD}" | passwd --stdin ${USERNAME}
+
+    echo "${USERNAME} ALL = (root) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/${USERNAME}
+    sudo chmod 0440 /etc/sudoers.d/${USERNAME}
+    sudo sed -i 's/Defaults    requiretty/Defaults:${USERNAME}    !requiretty/' /etc/sudoers
+    
+    while read ip port host pwd param
+    do
+      addUser ${host} ${USERNAME} ${pwd}
+    done < hosts    
+    
+    cp -r ${PWD}/* ${WORK_DIR}
+    su - ${USERNAME} << copyid
+      echo "y" | ssh-keygen -t rsa -P '' -f ${WORK_DIR}/.ssh/id_rsa
+      cd ~/; sh copy_ssh_id.sh ${USERNAME}
+copyid
+  fi
+  
   rm -f ${CONFIG_PATH}; touch ${CONFIG_PATH}
   while read ip port host pwd param; do
     echo "Host ${host}" >> ${CONFIG_PATH}
@@ -117,97 +162,73 @@ function init()
   done < hosts
   chmod 644 ${CONFIG_PATH}
 
-  if [ ! -f "${WORK_DIR}/.ssh/id_rsa" ]; then
-    echo "y" | ssh-keygen -t rsa -P '' -f "${WORK_DIR}/.ssh/id_rsa"
-    sh copy_ssh_id.sh 
-  fi
-
-  if [ ! -z "${1}" ];then
-    USERNAME=${1}
-    WORK_DIR=/home/${1}
-    CONFIG_PATH=${WORK_DIR}/.ssh/config
-    
-    echo "add user ($USERNAME)"
-    useradd -d ${WORK_DIR} -m ${USERNAME}
-    echo "${PASSWORD}" | passwd --stdin ${USERNAME}
-
-    echo "${USERNAME} ALL = (root) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/${USERNAME}
-    sudo chmod 0440 /etc/sudoers.d/${USERNAME}
-    sudo sed -i 's/Defaults    requiretty/Defaults:${USERNAME}    !requiretty/' /etc/sudoers
-    
-    cp -r ${PWD}/* ${WORK_DIR}
-    su - ${USERNAME} << copyid
-    
-    echo "y" | ssh-keygen -t rsa -P '' -f ${WORK_DIR}/.ssh/id_rsa
-    cd ~/; sh copy_ssh_id.sh ${USERNAME}
-copyid
-    
-    while read ip port host pwd param
-    do
-      if  [[ ${USERNAME} != 'root' ]]; then
-        addUser ${host} ${USERNAME} ${pwd}
-      fi
-
-      addIptables ${host} 6789
-      # addIptables ${host} 6800
-      # addIptables ${host} 7300
-      # ssh -n root@${host} "systemctl stop firewalld; systemctl disable firewalld"
-      
-      # fSSHInstall ${host} ntp
-      # # fSSHInstall ${host} ceph
-      # # fSSHInstall ${host} psmisc
-      # # ssh -n ${host} "killall -9 yum"
-    done < hosts
-
-  fi
+  while read ip port host pwd param
+  do
+    addIptables ${host} 6789
+    # addIptables ${host} 6800
+    # addIptables ${host} 7300
+    # ssh -n root@${host} "systemctl stop firewalld; systemctl disable firewalld"
+     
+    # fSSHInstall ${host} ntp
+    # # fSSHInstall ${host} ceph
+    # # fSSHInstall ${host} psmisc
+    # # ssh -n ${host} "killall -9 yum"
+  done < hosts
 
   echo "init to ${WORK_DIR} finished" 
 }
 
 function install()
 {
-  host=${1}
-  echo "begin install to ${host}"
+  host_list=""
+  while read ip port host pwd param
+  do
+    host_list="${host_list} ${host}"
 
-  fInstalled ${host} ceph-release
-  result=$?
-  if [ $result -eq "1" ]; then
-    result=`ssh -n ${host} "ceph --version"`
-    echo ${result}
-  else
-    echo "ceph is not installed"
+    echo "begin install to ${host}"
 
-    installstr=""
-    if [[ $host =~ 'mon' ]]; then
-      installstr="${installstr} --mon"
+    fInstalled cephuser@${host} ceph-release
+    result=$?
+    if [ $result -eq "1" ]; then
+      result=`ssh -n ${host} "ceph --version"`
+      echo ${result}
+    else
+      echo "ceph is not installed"
+
+      installstr=""
+      if [[ $host =~ 'mon' ]]; then
+        installstr="${installstr} --mon"
+      fi
+
+      if [[ $host =~ 'mgr' ]]; then
+        installstr="${installstr} --mgr"
+      fi
+
+      if [[ $host =~ 'mds' ]]; then
+        installstr="${installstr} --mds"
+      fi
+
+      if [[ $host =~ 'rgw' ]]; then
+        installstr="${installstr} --rgw"
+      fi
+
+      if [[ $host =~ 'osd' ]]; then
+        installstr="${installstr} --osd"
+      fi
+
+      echo "install ${host} (${installstr})"
+      ceph-deploy install ${host} ${installstr}
     fi
-
-    if [[ $host =~ 'mgr' ]]; then
-      installstr="${installstr} --mgr"
-    fi
-
-    if [[ $host =~ 'mds' ]]; then
-      installstr="${installstr} --mds"
-    fi
-
-    if [[ $host =~ 'rgw' ]]; then
-      installstr="${installstr} --rgw"
-    fi
-
-    if [[ $host =~ 'osd' ]]; then
-      installstr="${installstr} --osd"
-    fi
-
-    echo "install ${host} (${installstr})"
-    ceph-deploy install ${host} ${installstr}
-  fi
-  echo "${host} is install finished"
+    echo "${host} is install finished"
+  done < hosts
+  echo "install ceph (${PWD}) to ${host_list}"
+  # ceph-deploy install ${host_list}
 }
 
 function uninstall()
 {
   host_list=""
-  while read ip host pwd dev
+  while read ip port host pwd param
   do
     host_list="${host_list} ${host}"
     # ssh -n ${host} "rm -rf /etc/ceph/*; rm -rf /var/lib/ceph/*"
@@ -287,14 +308,7 @@ case $cmd in
     ;;
 
     install)
-      host_list=""
-      while read ip host pwd dev
-      do
-        host_list="${host_list} ${host}"
-        install ${host}
-      done < hosts
-      echo "install ceph (${PWD}) to ${host_list}"
-      # ceph-deploy install ${host_list}
+      install
     ;;
 
     uninstall)
