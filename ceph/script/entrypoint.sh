@@ -81,7 +81,7 @@ function addUser()
     exit
   fi
   
-  ssh -tt root@${host} << adduser  
+  ssh -tt ${host} << adduser  
     echo "add user (${host} ${username} ${password})"
     
     sudo userdel ${username}
@@ -89,7 +89,7 @@ function addUser()
     sudo rm -rf ${WORK_DIR}
     
     sudo useradd -d ${workdir} -m ${username}
-    echo "${passwrod}" | sudo passwd --stdin ${username}
+    echo "${password}" | sudo passwd --stdin ${username}
 
     echo "${username} ALL = (root) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/${username}
     sudo chmod 0440 /etc/sudoers.d/${username}
@@ -104,60 +104,61 @@ function init()
 {
   USERNAME=root
   WORK_DIR=/root
-  CONFIG_PATH=${WORK_DIR}/.ssh/config
+  CONFIG_PATH=/root/.ssh/config
+
+  rm -rf ${WORK_DIR}/.ssh; mkdir -p ${WORK_DIR}/.ssh
+  rm -f ${CONFIG_PATH}; touch ${CONFIG_PATH}
+  while read ip port host pwd param; do
+    echo "Host ${host}" >> ${CONFIG_PATH}
+    echo "  HostName ${host}" >> ${CONFIG_PATH}
+    echo "  Port ${port}" >> ${CONFIG_PATH}
+    echo "  User ${USERNAME}" >> ${CONFIG_PATH}
+    # echo "  IdentifyFile" >> ${CONFIG_PATH}
+  done < hosts
+  chmod 644 ${CONFIG_PATH}
 
   if [ ! -f "${WORK_DIR}/.ssh/id_rsa" ]; then
-    echo "y" | ssh-keygen -t rsa -P '' -f ${WORK_DIR}/.ssh/id_rsa
-    sh copy_ssh_id.sh ${USERNAME}
+    echo "y" | ssh-keygen -t rsa -P '' -f "${WORK_DIR}/.ssh/id_rsa"
+    sh copy_ssh_id.sh 
   fi
 
   if [ ! -z "${1}" ];then
     USERNAME=${1}
     WORK_DIR=/home/${1}
-  fi
-
-  if  [[ ${USERNAME} != 'root' ]]; then
-    echo "add user (${USERNAME})"
-
+    CONFIG_PATH=${WORK_DIR}/.ssh/config
+    
+    echo "add user ($USERNAME)"
     useradd -d ${WORK_DIR} -m ${USERNAME}
     echo "${PASSWORD}" | passwd --stdin ${USERNAME}
 
     echo "${USERNAME} ALL = (root) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/${USERNAME}
-    chmod 0440 /etc/sudoers.d/${USERNAME}
-
+    sudo chmod 0440 /etc/sudoers.d/${USERNAME}
     sudo sed -i 's/Defaults    requiretty/Defaults:${USERNAME}    !requiretty/' /etc/sudoers
-
-    # echo ${PASSWORD} | && \
-    # su - ${USERNAME}
-  fi
-  
-  if [ ! -f "${CONFIG_PATH}" ]; then
-    echo "build .ssh config file"
-    rm -f ${CONFIG_PATH}; touch ${CONFIG_PATH}
-    while read ip host pwd dev
+    
+    cp -r ${PWD}/* ${WORK_DIR}
+    su - ${USERNAME} << copyid
+    
+    echo "y" | ssh-keygen -t rsa -P '' -f ${WORK_DIR}/.ssh/id_rsa
+    cd ~/; sh copy_ssh_id.sh ${USERNAME}
+copyid
+    
+    while read ip port host pwd param
     do
       if  [[ ${USERNAME} != 'root' ]]; then
-        addUser ${host} ${USERNAME} ${pwd} 
+        addUser ${host} ${USERNAME} ${pwd}
       fi
-      
-      echo "Host ${host}" >> ${CONFIG_PATH}
-      echo "  Hostname ${host}" >> ${CONFIG_PATH}
-      echo "  User ${USERNAME}" >> ${CONFIG_PATH}
 
       addIptables ${host} 6789
-      addIptables ${host} 6800
-      addIptables ${host} 7300
-
-      ssh -n root@${host} "systemctl stop firewalld; systemctl disable firewalld"
-
+      # addIptables ${host} 6800
+      # addIptables ${host} 7300
+      # ssh -n root@${host} "systemctl stop firewalld; systemctl disable firewalld"
+      
       # fSSHInstall ${host} ntp
       # # fSSHInstall ${host} ceph
       # # fSSHInstall ${host} psmisc
       # # ssh -n ${host} "killall -9 yum"
-    
     done < hosts
 
-    chmod 644 ${CONFIG_PATH}
   fi
 
   echo "init to ${WORK_DIR} finished" 
