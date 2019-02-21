@@ -3,7 +3,6 @@ echo "${0} ${1} ${2} ${3}"
 PASSWORD=123456
 USERNAME=root
 WORK_DIR=/${USERNAME}
-CEPH_WORK_DIR=$WORK_DIR/cluster
 SCRIPT_WORK_DIR=/root/script
 
 #######################################################################
@@ -243,8 +242,11 @@ function uninstall()
 
 function deploy()
 {
+  CEPH_WORK_DIR=/`whoami`/cluster
+  echo "begin deploy to ${CEPH_WORK_DIR}"
+  
   host_list=""
-  while read ip host pwd dev
+  while read ip port host pwd param
   do
     host_list="${host_list} ${host}"
   done < hosts
@@ -259,15 +261,26 @@ function deploy()
   echo "osd_pool_default_size = 2" >> ceph.conf
   
   ceph-deploy --overwrite-conf mon create-initial
-  ceph-deploy --overwrite-conf gatherkeys mon1
- 
-  ceph-deploy admin mon1
-  ceph-depoly rgw create mon1
+  
+  while read ip port host pwd param
+  do
+    if [[ $host =~ 'mon' ]]; then
+      echo "deploy admin to ${host}"
+      ceph-deploy --overwrite-conf gatherkeys ${host}
+      ceph-deploy admin ${host}
+    fi
+    
+    if [[ $host =~ 'rgw' ]]; then
+      echo "deploy rgw to ${host}"
+      ceph-deploy rgw create ${host}
+    fi
+  done < $SCRIPT_WORK_DIR/hosts
  
   cd $SCRIPT_WORK_DIR
 }
 
 #######################################################################
+
 function initmon()
 {
   host=${1}
