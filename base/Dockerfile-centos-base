@@ -11,5 +11,7 @@ RUN sed -i 's/GSSAPIAuthentication yes/GSSAPIAuthentication no/g' /etc/ssh/sshd_
 RUN /bin/echo 'root:112233' | chpasswd
 RUN /bin/sed -i 's/.*session.*required.*pam_loginuid.so.*/session optional pam_loginuid.so/g' /etc/pam.d/sshd
 RUN /bin/echo -e "LANG=\"en_US.UTF-8\"" > /etc/default/local
+# RUN systemctl enable sshd.service
 EXPOSE 22
 CMD /usr/sbin/sshd -D
+# CMD /usr/sbin/init
