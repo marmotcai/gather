@@ -81,16 +81,18 @@ function clean()
 function addUser()
 {
   host=${1}
-  username=${2}
-  password=${3}
+  port=${2}
+  username=${3}
+  password=${4}
   workdir=/home/${username}
 
+  echo "add user ${username} to ${host}"
   if  [[ ${username} = 'root' ]]; then
     echo "root user can't add to ${host}"
     exit
   fi
   
-  ssh -tt ${host} << adduser  
+  ssh -tt ${host} -p ${port} << adduser  
     echo "add user (${host} ${username} ${password})"
     
     sudo userdel ${username}
@@ -119,11 +121,11 @@ function init()
   if [ ! -f "${WORK_DIR}/.ssh/id_rsa" ]; then
     echo "y" | ssh-keygen -t rsa -P '' -f "${WORK_DIR}/.ssh/id_rsa"
     sh copy_ssh_id.sh
-
-    while read ip port host pwd param
-    do
-      delUser ${host} ${USERNAME} ${pwd}
-    done < hosts 
+    
+    # while read ip port host pwd param
+    # do
+      #delUser ${host} ${USERNAME} ${pwd}
+    # done < hosts 
   fi
 
   if [ ! -z "${1}" ];then
@@ -141,7 +143,7 @@ function init()
     
     while read ip port host pwd param
     do
-      addUser ${host} ${USERNAME} ${pwd}
+      addUser root@${ip} ${port} ${USERNAME} ${pwd}
     done < hosts    
     
     cp -r ${PWD}/* ${WORK_DIR}
@@ -163,9 +165,11 @@ copyid
 
   while read ip port host pwd param
   do
-    addIptables ${host} 6789
+    echo "init firewall to ${host}"
+    # addIptables ${host} 6789
     # addIptables ${host} 6800
     # addIptables ${host} 7300
+    # addIptables ${host} 7480
     # ssh -n root@${host} "systemctl stop firewalld; systemctl disable firewalld"
      
     # fSSHInstall ${host} ntp

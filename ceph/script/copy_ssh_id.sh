@@ -28,7 +28,7 @@ cat hosts | while read ip port host pwd param; do
   sshpass -p $pwd ssh-copy-id -i ${WORK_DIR}/.ssh/id_rsa.pub -f ${USERNAME}@$ip -p $port 2>/dev/null
   
   if [[ ${USERNAME} = 'root' ]]; then
-    ssh -nq -p $port $ip "hostnamectl set-hostname $host"
+    # ssh -nq -p $port $ip "hostnamectl set-hostname $host"
     ssh -nq -p $port $ip "echo -e 'y\n' | ssh-keygen -q -f /root/.ssh/id_rsa -t rsa -N ''"
     echo "===== Copy id_rsa.pub of $ip ====="
     scp -P $port $ip:/root/.ssh/id_rsa.pub ./$host-id_rsa.pub
