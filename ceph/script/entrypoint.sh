@@ -190,7 +190,7 @@ function install()
 
     echo "begin install to ${host}"
 
-    fInstalled cephuser@${host} ceph-release
+    fInstalled ${host} ceph-release
     result=$?
     if [ $result -eq "1" ]; then
       result=`ssh -n ${host} "ceph --version"`
@@ -261,7 +261,7 @@ function deploy()
   cd $CEPH_WORK_DIR
 
   ceph-deploy new ${host_list}
-  echo "public_network = 192.168.1.0/24" >> ceph.conf
+  echo "public_network = 172.17.0.0/24" >> ceph.conf
   echo "osd_pool_default_size = 2" >> ceph.conf
   
   ceph-deploy --overwrite-conf mon create-initial

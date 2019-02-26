@@ -59,10 +59,8 @@ image:
 	docker build --target $(tag) -t $(image) -f $(DOCKERFILE_PATH) .
 
 test:
-	# docker run --rm -ti $(image) /bin/bash
 	docker run --rm -ti -v $(shell pwd)/ceph/script:/root/script $(image) /bin/bash	
 	
-push:
 
 .PHONY: help build-image image test push
 .SILENT:

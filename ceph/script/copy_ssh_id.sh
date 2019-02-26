@@ -31,8 +31,8 @@ cat hosts | while read ip port host pwd param; do
     # ssh -nq -p $port $ip "hostnamectl set-hostname $host"
     ssh -nq -p $port $ip "echo -e 'y\n' | ssh-keygen -q -f /root/.ssh/id_rsa -t rsa -N ''"
     echo "===== Copy id_rsa.pub of $ip ====="
-    scp -P $port $ip:/root/.ssh/id_rsa.pub ./$host-id_rsa.pub
-    cat ./$host-id_rsa.pub >> ${keysfile}
+    scp -P $port $ip:/root/.ssh/id_rsa.pub ${WORK_DIR}/.ssh/$host-id_rsa.pub
+    cat ${WORK_DIR}/.ssh/$host-id_rsa.pub >> ${keysfile}
     
     echo $ip $host >> /etc/hosts
   else
