@@ -3,9 +3,10 @@
 imagename=${1}
 hostname=${imagename}
 sshport=${2}
+params=${3}
 
 if [ -z "${imagename}" ];then
-  echo "use : sh build-centos.sh image-name ssh-port"
+  echo "use : sh build-centos.sh image-name ssh-port params"
   exit 0
 fi
 
@@ -27,5 +28,5 @@ if [ ! -z "${result}" ];then
     exit 0
   fi  
 fi
-docker run -d --privileged -p ${sshport}:22 --name=${imagename} --hostname=${hostname} marmotcai/centos-base
+docker run -d --privileged ${params}  -p ${sshport}:22 --name=${imagename} --hostname=${hostname} marmotcai/centos-base
 echo "ssh -p ${sshport} root@localhost"
