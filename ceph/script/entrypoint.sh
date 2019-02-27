@@ -170,7 +170,7 @@ copyid
     # addIptables ${host} 6800
     # addIptables ${host} 7300
     # addIptables ${host} 7480
-    # ssh -n root@${host} "systemctl stop firewalld; systemctl disable firewalld"
+    ssh -n root@${host} "systemctl stop firewalld; systemctl disable firewalld"
      
     # fSSHInstall ${host} ntp
     # # fSSHInstall ${host} ceph
@@ -261,7 +261,7 @@ function deploy()
   cd $CEPH_WORK_DIR
 
   ceph-deploy new ${host_list}
-  echo "public_network = 172.17.0.0/24" >> ceph.conf
+  echo "public_network = 192.168.1.0/24" >> ceph.conf
   echo "osd_pool_default_size = 2" >> ceph.conf
   
   ceph-deploy --overwrite-conf mon create-initial
