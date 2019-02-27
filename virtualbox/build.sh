@@ -31,6 +31,13 @@ function createdisk
 
   #新建一个虚拟硬盘
   vboxmanage createmedium disk --filename ${DISK} --size ${DISK_SIZE}
+  # vboxmanage list hddbackends 
+}
+
+function deldisk
+{
+  DISK=${1}
+  vboxmanage closemedium ${DISK} --delete
 }
 
 function clone()
@@ -99,34 +106,28 @@ function build()
   #vboxmanage showvminfo ${VM_NAME}
 }
 
-function clone()
-{
-  SOURCE_DISK=${1}
-  TAGET_DISK=${2}
-  vboxmanage clonevdi ${SOURCE_DISK} ${TAGET_DISK}
-}
-
 function install()
 {
   sudo sh -c 'echo "deb http://download.virtualbox.org/virtualbox/debian $(lsb_release -cs) contrib" >> /etc/apt/sources.list.d/virtualbox.list'
   wget -q https://www.virtualbox.org/download/oracle_vbox.asc -O- | sudo apt-key add
 
-  sudo apt-get update
-  sudo apt-get install virtualbox-5.2
+  sudo apt -y update
+  sudo apt -y install virtualbox-5.2 --allow-unauthenticated
   vboxmanage --version
 
   wget http://download.virtualbox.org/virtualbox/5.2.2/Oracle_VM_VirtualBox_Extension_Pack-5.2.2-119230.vbox-extpack
-  vboxmanage extpack install Oracle_VM_VirtualBox_Extension_Pack-5.2.2-119230.vbox-extpack
+  vboxmanage extpack install --replace Oracle_VM_VirtualBox_Extension_Pack-5.2.2-119230.vbox-extpack
   vboxmanage list extpacks
 
   vboxmanage setproperty vrdeextpack "Oracle VM VirtualBox Extension Pack"
+  rm -f Oracle_VM_VirtualBox_Extension_Pack-5.2.2-119230.vbox-extpack
 }
 
 function uninstall()
 {
-  vboxmanage extpack uninstall "Oracle VM VirtualBox Extension Pack" 
+  vboxmanage extpack uninstall --force "Oracle VM VirtualBox Extension Pack" 
   vboxmanage extpack cleanup
-  apt remove virtualbox-5.2
+  sudo apt remove -y virtualbox-5.2
   rm -f /etc/apt/sources.list.d/virtualbox.list
 }
 
@@ -176,6 +177,10 @@ case $cmd in
       #新建一个虚拟硬盘
       createdisk ${param1} ${param2}
     ;;
+    deldisk)
+      #删除一个虚拟硬盘
+      deldisk ${param1}
+    ;;
 
     clone)
       clone ${param1} ${param2}
@@ -198,6 +203,8 @@ case $cmd in
         echo "use: sh build.sh poweron vm_name"
         echo "use: sh build.sh poweroff vm_name"
         echo "use: sh build.sh list vm_name"
+        echo "use: sh build.sh createdisk disk_file disk_size"
+        echo "use: sh build.sh deldisk disk_file"
         echo "use: sh build.sh clone source_file target_file"
         echo "use: sh build.sh install"
         echo "use: sh build.sh uninstall"
