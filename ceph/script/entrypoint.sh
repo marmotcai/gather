@@ -296,6 +296,7 @@ function initosd()
 {
   host=${1}
   dev=${2}
+  CEPH_WORK_DIR=/`whoami`/cluster
 
   if [ -z "${host}" ] || [ -z "${dev}" ]; then
     echo "missing the parameter"
@@ -315,6 +316,7 @@ function initosd()
 
 cmd=${1}
 param1=${2}
+param2=${3}
 case $cmd in 
     clean)
       clean ${param1}
@@ -336,17 +338,22 @@ case $cmd in
       deploy
     ;;
 
+    initosd)
+      initosd ${param1} ${param2}
+    ;;
+
     initnode)
-      #while read ip host pwd dev
-      #do
-      # if [ `expr match $host "mon" ` -ne 0 ]; then
+      echo "begin init osd..."
+      while read ip port host pwd param
+      do
+      #if [[ $host =~ 'mon' ]]; then
       #  initmon $host
       #else
-      #if [ `expr match $host "osd" ` -ne 0 ]; then
-      #  initosd $host $dev
+      if [[ $host =~ 'osd' ]]; then
+        initosd $host $param
+      fi
       #fi
-      #fi
-      #done < hosts
+      done < hosts
     ;;
 
 esac

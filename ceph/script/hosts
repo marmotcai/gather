@@ -1,2 +1,2 @@
-192.168.1.71 22 mon1_rgw1_osd1 cg112233
-192.168.1.61 22 mgr1_mds1_osd2 cg112233
+192.168.1.71 22 mon1_rgw1_osd1 cg112233 /dev/sdb
+192.168.1.61 22 mgr1_mds1_osd2 cg112233 /dev/sdb
