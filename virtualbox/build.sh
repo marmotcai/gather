@@ -47,6 +47,16 @@ function clone()
   vboxmanage clonevdi ${SOURCE_DISK} ${TAGET_DISK}
 }
 
+function addrawdisk
+{ 
+  VM_NAME=${1}
+  SOURCE_DISK=${2}
+  VMDK_FILE=${3}
+  
+  vboxmanage internalcommands createrawvmdk -filename ${VMDK_FILE} -rawdisk ${SOURCE_DISK}
+  vboxmanage storageattach ${VM_NAME} --storagectl "SATA Controller" --port 1 --device 0 --type hdd --medium ${VMDK_FILE}
+}
+
 function build()
 {
   VM_NAME=${1}
@@ -186,6 +196,10 @@ case $cmd in
       clone ${param1} ${param2}
     ;;
 
+    addrawdisk)
+      addrawdisk ${param1} ${param2} ${param3}
+    ;;
+
     install)
       install
     ;;
@@ -206,6 +220,7 @@ case $cmd in
         echo "use: sh build.sh createdisk disk_file disk_size"
         echo "use: sh build.sh deldisk disk_file"
         echo "use: sh build.sh clone source_file target_file"
+        echo "use: sh build.sh addrawdisk vm_name source_disk vmdk_file"
         echo "use: sh build.sh install"
         echo "use: sh build.sh uninstall"
         exit 1;
