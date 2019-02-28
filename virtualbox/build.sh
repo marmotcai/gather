@@ -75,6 +75,7 @@ function build()
   #新建SATA磁盘控制器并将上一步新建的磁盘绑定到虚拟机文件
   vboxmanage storagectl ${VM_NAME} --name "SATA Controller" --add sata --controller IntelAHCI
   if [ ! -z "${DISK_FILE}" ];then
+    vboxmanage internalcommands sethduuid ${DISK_FILE} #重新生成ID
     vboxmanage storageattach ${VM_NAME} --storagectl "SATA Controller" --port 0 --device 0 --type hdd --medium ${DISK_FILE}
   fi
   # vboxmanage internalcommands createrawvmdk -filename sdb1.vmdk -rawdisk /dev/sdb1
