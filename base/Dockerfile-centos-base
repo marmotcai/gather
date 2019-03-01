@@ -1,7 +1,18 @@
 FROM centos:7 AS base
 MAINTAINER marmotcai "marmotcai@163.com"
 
-RUN yum install -y wget sudo openssh openssh-server openssh-clients
+RUN yum clean all && rm -rf /etc/yum.repos.d/*.repo
+RUN     curl -o /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo && \
+        curl -o /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-7.repo
+
+RUN     sed -i '/aliyuncs/d' /etc/yum.repos.d/CentOS-Base.repo && \
+        sed -i '/aliyuncs/d' /etc/yum.repos.d/epel.repo && \
+        sed -i 's/$releasever/7/g' /etc/yum.repos.d/CentOS-Base.repo
+
+RUN yum clean all && \
+        yum makecache fast
+
+RUN yum update -y && yum install -y vim wget sudo openssh openssh-server openssh-clients
 
 RUN mkdir /var/run/sshd
 RUN ssh-keygen -t rsa -f /etc/ssh/ssh_host_rsa_key
@@ -11,7 +22,10 @@ RUN sed -i 's/GSSAPIAuthentication yes/GSSAPIAuthentication no/g' /etc/ssh/sshd_
 RUN /bin/echo 'root:112233' | chpasswd
 RUN /bin/sed -i 's/.*session.*required.*pam_loginuid.so.*/session optional pam_loginuid.so/g' /etc/pam.d/sshd
 RUN /bin/echo -e "LANG=\"en_US.UTF-8\"" > /etc/default/local
+
 # RUN systemctl enable sshd.service
+
 EXPOSE 22
+
 CMD /usr/sbin/sshd -D
 # CMD /usr/sbin/init
