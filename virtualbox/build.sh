@@ -101,11 +101,8 @@ function build()
 
   #设置网络方式
   vboxmanage modifyvm ${VM_NAME} --nic1 bridged --bridgeadapter1 eno1
-<<<<<<< HEAD
   # vboxmanage modifyvm ${VM_NAME} --macaddress1 "0011322CA785"
-=======
   # vboxmanage modifyvm ${VM_NAME} --nic2 bridged --bridgeadapter2 eno1
->>>>>>> 474246568e04dd7fe914a217ff565cc4c1ba0da0
 
   #设置IO
   vboxmanage modifyvm ${VM_NAME} --ioapic on
