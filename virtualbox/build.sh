@@ -73,10 +73,12 @@ function build()
 
   #新建VirtualBox虚拟机文件（系统类型必须严格按照这个写，否则可能不能安装64位系统）
   vboxmanage createvm --name ${VM_NAME} --ostype "Linux26_64" --register
+  # vboxmanage createvm --name ${VM_NAME} --ostype "Windows10_64" --register
 
   #新建SATA磁盘控制器并将上一步新建的磁盘绑定到虚拟机文件
   vboxmanage storagectl ${VM_NAME} --name "SATA Controller" --add sata --controller IntelAHCI
   if [ ! -z "${DISK_FILE}" ];then
+    vboxmanage internalcommands sethduuid ${DISK_FILE} #重新生成ID
     vboxmanage storageattach ${VM_NAME} --storagectl "SATA Controller" --port 0 --device 0 --type hdd --medium ${DISK_FILE}
   fi
   # vboxmanage internalcommands createrawvmdk -filename sdb1.vmdk -rawdisk /dev/sdb1
@@ -91,15 +93,19 @@ function build()
   #新建IDE控制器，设置它为dvd，并绑定ios文件到该dvd，--medium为系统安装文件的iso路径
   vboxmanage storagectl ${VM_NAME} --name "IDE Controller" --add ide
   if [ ! -z "${ISO_FILE}" ];then
-    vboxmanage storageattach ${VM_NAME} --storagectl "IDE Controller" --port 1 --device 0 --type dvddrive --medium "${ISO_FLIE}"
+    vboxmanage storageattach ${VM_NAME} --storagectl "IDE Controller" --port 1 --device 0 --type dvddrive --medium "${ISO_FILE}"
   fi
 
-  #设置内存(1G)，显存
-  vboxmanage modifyvm ${VM_NAME} --memory ${MEMORY_SIZE} --vram 128 --hwvirtex on
+  #设置CPU，内存，显存
+  vboxmanage modifyvm ${VM_NAME} --cpus 2 --memory ${MEMORY_SIZE} --vram 128 --hwvirtex on
 
   #设置网络方式
   vboxmanage modifyvm ${VM_NAME} --nic1 bridged --bridgeadapter1 eno1
+<<<<<<< HEAD
   # vboxmanage modifyvm ${VM_NAME} --macaddress1 "0011322CA785"
+=======
+  # vboxmanage modifyvm ${VM_NAME} --nic2 bridged --bridgeadapter2 eno1
+>>>>>>> 474246568e04dd7fe914a217ff565cc4c1ba0da0
 
   #设置IO
   vboxmanage modifyvm ${VM_NAME} --ioapic on

@@ -7,10 +7,19 @@ SCRIPT_WORK_DIR=/root/script
 
 #######################################################################
 
+function fGetOSName()
+{
+  host=$1
+  result=`ssh -n ${host} "cat /etc/os-release | awk 'NR==3' | cut -d '=' -f2" | sed 's/"//g'`
+  echo $result
+}
+
 function fInstalled()
 {
-  echo ssh -n ${1} "yum list installed | grep ${2}"
-  result=`ssh -n ${1} "yum list installed | grep ${2}"`
+  host=${1}
+  name=${2}
+  echo ssh -n ${host} "yum list installed | grep ${name}"
+  result=`ssh -n ${host} "yum list installed | grep ${name}"`
   # echo $result;
 
   if [ -z "$result" ];then
@@ -92,6 +101,7 @@ function addUser()
     exit
   fi
   
+  osname="$(fGetOSName $host)"
   ssh -tt ${host} -p ${port} << adduser  
     echo "add user (${host} ${username} ${password})"
     
@@ -100,13 +110,24 @@ function addUser()
     sudo rm -rf ${WORK_DIR}
     
     sudo useradd -d ${workdir} -m ${username}
-    echo "${password}" | sudo passwd --stdin ${username}
-
-    echo "${username} ALL = (root) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/${username}
-    sudo chmod 0440 /etc/sudoers.d/${username}
-
-    sudo sed -i 's/Defaults    requiretty/Defaults:${username}    !requiretty/' /etc/sudoers
+    # echo "${password}" | sudo passwd --stdin ${username}
+    echo ${username}:${password}|chpasswd
     
+    if [[ $osname =~ 'centos' ]]; then
+      echo "begin add ${username} to $osname sudoer"
+      echo "${username} ALL = (root) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/${username}
+      sudo chmod 0440 /etc/sudoers.d/${username}
+      sudo sed -i 's/Defaults    requiretty/Defaults:${username}    !requiretty/' /etc/sudoers
+    fi
+
+    if [[ $osname =~ 'ubuntu' ]]; then
+      echo "begin add ${username} to $osname sudoer"
+      sudo usermod -s /bin/bash ${username}
+      sudo chmod u+w /etc/sudoers
+      sudo sed -i '/# User privilege specification/a ${username} ALL=(ALL:ALL) ALL' /etc/sudoers
+      sudo chmod u-w /etc/sudoers    
+    fi
+
     exit
 adduser
 }
@@ -155,28 +176,38 @@ copyid
   
   rm -f ${CONFIG_PATH}; touch ${CONFIG_PATH}
   while read ip port host pwd param; do
+    osname="$(fGetOSName $host)"
     echo "Host ${host}" >> ${CONFIG_PATH}
     echo "  HostName ${host}" >> ${CONFIG_PATH}
     echo "  Port ${port}" >> ${CONFIG_PATH}
     echo "  User ${USERNAME}" >> ${CONFIG_PATH}
     # echo "  IdentifyFile" >> ${CONFIG_PATH}
+    if [[ $osname =~ 'centos' ]]; then
+      echo "init firewall to ${host} os=$osname"
+      ssh -n root@${host} "systemctl stop firewalld; systemctl disable firewalld"
+    fi
+    if [[ $osname =~ 'ubuntu' ]]; then
+      echo "init firewall to ${host} os=$osname"
+      ssh -n root@${host} "sudo ufw disable; sudo ufw status"      
+    fi
   done < hosts
   chmod 644 ${CONFIG_PATH}
 
-  while read ip port host pwd param
-  do
-    echo "init firewall to ${host}"
+  # while read ip port host pwd param
+  # do
+    # echo "init firewall to ${host}"
     # addIptables ${host} 6789
     # addIptables ${host} 6800
     # addIptables ${host} 7300
     # addIptables ${host} 7480
-    ssh -n root@${host} "systemctl stop firewalld; systemctl disable firewalld"
+    # ssh -n root@${host} "systemctl stop firewalld; systemctl disable firewalld"
+    # ssh -n root@${host} "sudo ufw disable; sudo ufw status"
      
     # fSSHInstall ${host} ntp
     # # fSSHInstall ${host} ceph
     # # fSSHInstall ${host} psmisc
     # # ssh -n ${host} "killall -9 yum"
-  done < hosts
+  # done < hosts
 
   echo "init to ${WORK_DIR} finished" 
 }
