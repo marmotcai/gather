@@ -12,6 +12,8 @@ help:
 		echo "         make build-image name=cordova tag=cordova image=marmotcai/cordova"
 		echo "         make build-image name=ionic tag=ionic image=marmotcai/ionic"
 		echo "         make build-image name=ceph-deploy tag=ceph-deploy image=marmotcai/ceph-deploy"
+		echo "         make build-image name=golang tag=golang image=marmotcai/golang"
+		echo "         make build-image name=go-mediainfo tag=go-mediainfo image=marmotcai/go-mediainfo"
 		echo "use: make build projecturl"
 		echo "    e.g: make build http://git.atoml.com/taoyang/hangu-epg.git"
 		echo "use: make test image=xx"
@@ -48,8 +50,13 @@ build-image:
 		then DOCKERFILE_PATH="./cordova/Dockerfile-ionic" make image; fi						
 	
 	if [ "$(name)" = "ceph-deploy" ]; \
-		then DOCKERFILE_PATH="./ceph/Dockerfile-centos-ceph-deploy" make image; fi						
+		then DOCKERFILE_PATH="./ceph/Dockerfile-centos-ceph-deploy" make image; fi
 
+	if [ "$(name)" = "golang" ]; \
+		then DOCKERFILE_PATH="./golang/Dockerfile-centos-golang" make image; fi
+
+	if [ "$(name)" = "go-mediainfo" ]; \
+		then DOCKERFILE_PATH="./mediainfo/Dockerfile-golang-mediainfo" make image; fi
 image:
 
 	echo $(name) '-' $(tag) '>>' $(image)
@@ -59,8 +66,14 @@ image:
 	docker build --target $(tag) -t $(image) -f $(DOCKERFILE_PATH) .
 
 test:
-	docker run --rm -ti -v $(shell pwd)/ceph/script:/root/script $(image) /bin/bash	
 	
+	echo 'test image ('$(image)')'
+
+	if [ "$(image)" = "marmotcai/ceph-deploy" ]; \
+		then docker run --rm -ti -v $(shell pwd)/ceph/script:/root/script $(image) /bin/bash; fi
+	        
+	if [ "$(image)" = "marmotcai/go-mediainfo" ]; \
+		then docker run --rm -ti -v $(shell pwd)/mediainfo/data:/root/go/src/go-mediainfo $(image) /bin/bash; fi
 
 .PHONY: help build-image image test push
 .SILENT:
