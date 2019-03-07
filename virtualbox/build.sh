@@ -52,7 +52,10 @@ function addrawdisk
   VM_NAME=${1}
   SOURCE_DISK=${2}
   VMDK_FILE=${3}
-  
+
+  vboxmanage storageattach ${VM_NAME} --storagectl "SATA Controller" --port 1 --device 0 --type hdd --medium none
+  rm -f VMDK_FILE
+ 
   vboxmanage internalcommands createrawvmdk -filename ${VMDK_FILE} -rawdisk ${SOURCE_DISK}
   vboxmanage storageattach ${VM_NAME} --storagectl "SATA Controller" --port 1 --device 0 --type hdd --medium ${VMDK_FILE}
 }
@@ -98,6 +101,7 @@ function build()
 
   #设置网络方式
   vboxmanage modifyvm ${VM_NAME} --nic1 bridged --bridgeadapter1 eno1
+  # vboxmanage modifyvm ${VM_NAME} --macaddress1 "0011322CA785"
   # vboxmanage modifyvm ${VM_NAME} --nic2 bridged --bridgeadapter2 eno1
 
   #设置IO
