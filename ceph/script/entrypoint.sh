@@ -124,7 +124,8 @@ function addUser()
       echo "begin add ${username} to $osname sudoer"
       sudo usermod -s /bin/bash ${username}
       sudo chmod u+w /etc/sudoers
-      sudo sed -i '/# User privilege specification/a ${username} ALL=(ALL:ALL) ALL' /etc/sudoers
+      # sudo sed -i '/# User privilege specification/a ${username} ALL=(ALL:ALL) ALL' /etc/sudoers
+      sudo sed -i '/# User privilege specification/a ${username} ALL=(ALL) NOPASSWD:ALL' /etc/sudoers
       sudo chmod u-w /etc/sudoers    
     fi
 
@@ -292,7 +293,7 @@ function deploy()
   cd $CEPH_WORK_DIR
 
   ceph-deploy new ${host_list}
-  echo "public_network = 192.168.1.0/24" >> ceph.conf
+  echo "public_network = 192.168.2.0/24" >> ceph.conf
   echo "osd_pool_default_size = 2" >> ceph.conf
   
   ceph-deploy --overwrite-conf mon create-initial
@@ -336,7 +337,7 @@ function initosd()
     cd $CEPH_WORK_DIR    
     ceph-deploy --ceph-conf=$CEPH_WORK_DIR/ceph.conf disk zap $host:$dev
     ceph-deploy --ceph-conf=$CEPH_WORK_DIR/ceph.conf osd prepare $host:$dev
-    ceph-deploy --ceph-conf=$CEPH_WORK_DIR/ceph.conf osd activate $host:$dev
+    ceph-deploy --ceph-conf=$CEPH_WORK_DIR/ceph.conf osd activate $host:$dev1
 
     ceph-deploy disk list $host
     cd $SCRIPT_WORK_DIR
