@@ -73,7 +73,7 @@ test:
 		then docker run --rm -ti -v $(shell pwd)/ceph/script:/root/script $(image) /bin/bash; fi
 	        
 	if [ "$(image)" = "marmotcai/go-mediainfo" ]; \
-		then docker run --rm -ti -v $(shell pwd)/mediainfo/data:/root/go/src/go-mediainfo $(image) /bin/bash; fi
+		then docker run --rm -ti -v $(shell pwd)/mediainfo/project:/root/go/src/cg-mediainfo $(image) /bin/bash; fi
 
 .PHONY: help build-image image test push
 .SILENT:

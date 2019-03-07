@@ -2,7 +2,7 @@ FROM marmotcai/golang AS go-mediainfo
 
 MAINTAINER marmotcai "marmotcai@163.com"
 
-ENV WORK_DIR $GOPATH/src/go-mediainfo
+ENV WORK_DIR $GOPATH/src
 
 WORKDIR $WORK_DIR
 
