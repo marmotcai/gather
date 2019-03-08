@@ -1,0 +1,15 @@
+FROM marmotcai/golang AS go-mediainfo
+
+MAINTAINER marmotcai "marmotcai@163.com"
+
+ENV WORK_DIR $GOPATH/src
+
+WORKDIR $WORK_DIR
+
+RUN yum -y update && \
+    yum install -y gcc git libcurl-devel libzen-devel zlib-devel libstdc++-devel libstdc++-static libmediainfo-devel mediainfo
+RUN mediainfo --version
+
+# ENV MEDIAINFO_PRM_URL "https://mediaarea.net/download/binary/libmediainfo0/18.12/libmediainfo-devel-18.12.x86_64.CentOS_7.rpm"
+# RUN curl -L -o libmediainfo.rpm $MEDIAINFO_PRM_URL && rpm -ivh --force libmediainfo.rpm
+

@@ -12,7 +12,10 @@ RUN     sed -i '/aliyuncs/d' /etc/yum.repos.d/CentOS-Base.repo && \
 RUN yum clean all && \
         yum makecache fast
 
-RUN yum update -y && yum install -y vim wget sudo openssh openssh-server openssh-clients
+# yum install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+# subscription-manager repos --enable "rhel-*-optional-rpms" --enable "rhel-*-extras-rpms"  --enable "rhel-ha-for-rhel-*-server-rpms"
+
+RUN yum update -y && yum install -y vim wget sudo git openssh openssh-server openssh-clients
 
 RUN mkdir /var/run/sshd
 RUN ssh-keygen -t rsa -f /etc/ssh/ssh_host_rsa_key
