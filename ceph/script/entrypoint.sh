@@ -59,8 +59,6 @@ function clean()
 {
   USERNAME=root
   WORK_DIR=/root
-  echo "clean the root files (${USERNAME})"
-  rm -rf ${WORK_DIR}/.ssh
 
   if [ ! -z "${1}" ];then
     USERNAME=${1}
@@ -72,19 +70,23 @@ function clean()
     rm -rf ${WORK_DIR}/.ssh
     rm -rf ${WORK_DIR}
 
-    # while read ip port host pwd param
-    # do
-    #   ssh -tt ${host} << deluser
-    #     sudo userdel ${username}
-    #     sudo rm -f /etc/sudoers.d/${USERNAME}
-    #     sudo rm -rf ${WORK_DIR}
-# deluser
-    #  done < hosts
+    while read ip port host pwd param
+    do
+      ssh -tt root@${host} << deluser
+        sudo userdel ${username}
+        sudo rm -f /etc/sudoers.d/${USERNAME}
+        sudo rm -rf ${WORK_DIR}
+        exit
+deluser
+    done < hosts
   fi
 
   rm -rf ${WORK_DIR}/cluster
 
   rm -f ./*.log
+
+  echo "clean the root files (${USERNAME})"
+  rm -rf ${WORK_DIR}/.ssh
 }
 
 function addUser()
@@ -252,7 +254,13 @@ function install()
       fi
 
       echo "install ${host} (${installstr})"
-      ceph-deploy install ${host} ${installstr}
+      # ceph-deploy install ${host} ${installstr}
+      
+      # yum clean all
+      # rm -rf /etc/yum.repos.d/ceph*
+      repourl=http://mirrors.aliyun.com/ceph/rpm-jewel/el7/
+      gpgurl=http://mirrors.aliyun.com/centos/RPM-GPG-KEY-CentOS-7
+      ceph-deploy install ${host} ${installstr} --repo-url=$repourl --gpg-url=$gpgurl
     fi
     echo "${host} is install finished"
   done < hosts
@@ -309,6 +317,20 @@ function deploy()
     if [[ $host =~ 'rgw' ]]; then
       echo "deploy rgw to ${host}"
       ceph-deploy rgw create ${host}
+    fi
+
+    if [[ $host =~ 'osd' ]]; then
+      echo "deploy osd to ${host}"
+      dev=${param}
+      if [ -z "${host}" ] || [ -z "${dev}" ]; then
+        echo "missing the parameter"
+      else
+        ceph-deploy disk zap $host:$dev
+        ceph-deploy osd prepare $host:$dev
+        ceph-deploy osd activate $host:$dev1
+
+        ceph-deploy disk list $host
+      fi
     fi
   done < $SCRIPT_WORK_DIR/hosts
  
