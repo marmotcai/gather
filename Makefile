@@ -14,6 +14,7 @@ help:
 		echo "         make build-image name=ceph-deploy tag=ceph-deploy image=marmotcai/ceph-deploy"
 		echo "         make build-image name=golang tag=golang image=marmotcai/golang"
 		echo "         make build-image name=go-mediainfo tag=go-mediainfo image=marmotcai/go-mediainfo"
+		echo "         make build-image name=s3cmd tag=s3cmd image=marmotcai/s3cmd"
 		echo "use: make build projecturl"
 		echo "    e.g: make build http://git.atoml.com/taoyang/hangu-epg.git"
 		echo "use: make test image=xx"
@@ -57,6 +58,10 @@ build-image:
 
 	if [ "$(name)" = "go-mediainfo" ]; \
 		then DOCKERFILE_PATH="./mediainfo/Dockerfile-golang-mediainfo" make image; fi
+
+	if [ "$(name)" = "s3cmd" ]; \
+		then DOCKERFILE_PATH="./s3cmd/Dockerfile-centos-s3cmd" make image; fi
+
 image:
 
 	echo $(name) '-' $(tag) '>>' $(image)
@@ -70,10 +75,13 @@ test:
 	echo 'test image ('$(image)')'
 
 	if [ "$(image)" = "marmotcai/ceph-deploy" ]; \
-		then docker run --rm -ti -v $(shell pwd)/ceph/script:/root/script $(image) /bin/bash; fi
+		then docker run --rm -ti -v $(shell pwd)/ceph/script:/root/script $(image) /bin/bash; exit 0; fi
 	        
 	if [ "$(image)" = "marmotcai/go-mediainfo" ]; \
-		then docker run --rm -ti -v $(shell pwd)/mediainfo/data:/root/go/src/data $(image) /bin/bash; fi
+		then docker run --rm -ti -v $(shell pwd)/mediainfo/data:/root/go/src/data $(image) /bin/bash; exit 0; fi
+		
+	docker run --rm -ti $(image) /bin/bash
+
 
 .PHONY: help build-image image test push
 .SILENT:

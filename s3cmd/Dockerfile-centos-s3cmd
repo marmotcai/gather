@@ -1,0 +1,24 @@
+FROM marmotcai/centos-base AS s3cmd
+MAINTAINER marmotcai "marmotcai@163.com"
+
+RUN yum install -y git python-dateutil
+RUN git clone https://github.com/s3tools/s3cmd.git /opt/s3cmd
+RUN ln -s /opt/s3cmd/s3cmd /usr/bin/s3cmd
+
+ENV WORK_DIR /root
+
+ADD ./s3cmd/s3cfg ${WORK_DIR}/.s3cfg
+ADD ./s3cmd/entrypoint.sh ${WORK_DIR}/entrypoint.sh
+
+# Main entrypoint script
+RUN chmod 777 ${WORK_DIR}/entrypoint.sh
+
+# Folders for s3cmd optionations
+RUN mkdir ${WORK_DIR}/src
+RUN mkdir ${WORK_DIR}/dest
+RUN s3cmd ls
+
+WORKDIR ${WORK_DIR}
+
+# CMD ["${WORK_DIR}/entrypoint.sh"]
+

@@ -301,7 +301,7 @@ function deploy()
   cd $CEPH_WORK_DIR
 
   ceph-deploy new ${host_list}
-  echo "public_network = 192.168.2.0/24" >> ceph.conf
+  echo "public_network = 192.168.1.0/24" >> ceph.conf
   echo "osd_pool_default_size = 2" >> ceph.conf
   
   ceph-deploy --overwrite-conf mon create-initial
