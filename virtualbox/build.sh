@@ -60,6 +60,20 @@ function addrawdisk
   vboxmanage storageattach ${VM_NAME} --storagectl "SATA Controller" --port 1 --device 0 --type hdd --medium ${VMDK_FILE}
 }
 
+function reloaddisk
+{
+  VM_NAME=${1}
+  DISK_FILE=${2}
+  PORT=${3}
+  
+  if [ ! -z "${PORT}" ];then
+    PORT=0
+  fi
+  vboxmanage storageattach ${VM_NAME} --storagectl "SATA Controller" --port ${PORT} --device 0 --type hdd --medium none
+  vboxmanage internalcommands sethduuid ${DISK_FILE} #重新生成ID
+  vboxmanage storageattach ${VM_NAME} --storagectl "SATA Controller" --port ${PORT} --device 0 --type hdd --medium ${DISK_FILE}
+}
+
 function build()
 {
   VM_NAME=${1}
@@ -123,7 +137,7 @@ function build()
   #vboxmanage showvminfo ${VM_NAME}
 }
 
-function install()
+function vboxinstall()
 {
   sudo sh -c 'echo "deb http://download.virtualbox.org/virtualbox/debian $(lsb_release -cs) contrib" >> /etc/apt/sources.list.d/virtualbox.list'
   wget -q https://www.virtualbox.org/download/oracle_vbox.asc -O- | sudo apt-key add
@@ -140,7 +154,7 @@ function install()
   rm -f Oracle_VM_VirtualBox_Extension_Pack-5.2.2-119230.vbox-extpack
 }
 
-function uninstall()
+function vboxuninstall()
 {
   vboxmanage extpack uninstall --force "Oracle VM VirtualBox Extension Pack" 
   vboxmanage extpack cleanup
@@ -207,12 +221,24 @@ case $cmd in
       addrawdisk ${param1} ${param2} ${param3}
     ;;
 
-    install)
-      install
+    reloaddisk)
+      reloaddisk ${param1} ${param2} ${param3}
     ;;
 
-    uninstall)
-      uninstall
+    vboxinstall)
+      vboxinstall
+    ;;
+
+    vboxuninstall)
+      vboxuninstall
+    ;;
+
+    install)
+      filename=/usr/local/bin/vbm
+      # ln -s ${0} ${filename}
+      rm -f ${filename}
+      cp ${0} ${filename}
+      chmod +x ${filename}
     ;;
 
     *) 
@@ -228,8 +254,10 @@ case $cmd in
         echo "use: sh build.sh deldisk disk_file"
         echo "use: sh build.sh clone source_file target_file"
         echo "use: sh build.sh addrawdisk vm_name source_disk vmdk_file"
+        echo "use: sh build.sh reloaddisk vm_name disk port"
+        echo "use: sh build.sh vboxinstall"
+        echo "use: sh build.sh vboxuninstall"
         echo "use: sh build.sh install"
-        echo "use: sh build.sh uninstall"
         exit 1;
     ;;
     

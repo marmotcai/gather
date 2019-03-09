@@ -254,13 +254,13 @@ function install()
       fi
 
       echo "install ${host} (${installstr})"
-      # ceph-deploy install ${host} ${installstr}
+      ceph-deploy install ${host} ${installstr}
       
       # yum clean all
       # rm -rf /etc/yum.repos.d/ceph*
-      repourl=http://mirrors.aliyun.com/ceph/rpm-jewel/el7/
-      gpgurl=http://mirrors.aliyun.com/centos/RPM-GPG-KEY-CentOS-7
-      ceph-deploy install ${host} ${installstr} --repo-url=$repourl --gpg-url=$gpgurl
+      # repourl=http://mirrors.aliyun.com/ceph/rpm-jewel/el7/
+      # gpgurl=http://mirrors.aliyun.com/centos/RPM-GPG-KEY-CentOS-7
+      # ceph-deploy install ${host} ${installstr} --repo-url=$repourl --gpg-url=$gpgurl
     fi
     echo "${host} is install finished"
   done < hosts
