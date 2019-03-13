@@ -11,4 +11,10 @@ RUN curl https://dl.google.com/go/go$GOLANG_VERSION.linux-amd64.tar.gz | tar xz 
         mkdir -p $GOPATH
 RUN go version
 
+RUN go get -u -v github.com/golang/sys.git
+RUN go get -u -v github.com/golang/text.git
+RUN go get -u -v github.com/golang/time.git
+RUN go get -u -v gopkg.in/urfave/cli.v1
+RUN go get -u -v gopkg.in/yaml.v2
+
 WORKDIR $GOPATH
