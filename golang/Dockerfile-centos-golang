@@ -9,16 +9,15 @@ ENV GOPATH /root/go
 ENV PATH $PATH:$GOROOT/bin:$GOPATH/bin
 RUN curl https://dl.google.com/go/go$GOLANG_VERSION.linux-amd64.tar.gz | tar xz -C $WORK_DIR && \
         mkdir -p $GOPATH
-RUN go version
 
 RUN go get -u github.com/gpmgo/gopm
+
 RUN gopm get -g golang.org/x/sys  
 RUN gopm get -g golang.org/x/text
 RUN gopm get -g golang.org/x/time 
 RUN gopm get -g golang.org/x/crypto 
 RUN gopm get -g golang.org/x/net
 
-RUN gopm get -g gopkg.in/urfave/cli.v1
-RUN gopm get -g gopkg.in/yaml.v2
+RUN go version
 
 WORKDIR $GOPATH
