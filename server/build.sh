@@ -13,6 +13,10 @@ case $cmd in
         docker build -t marmotcai/redis -f ./Dockerfile-redis .
       fi;
 
+      if [[ $param =~ 'ftp' ]]; then
+        docker build -t marmotcai/ftp -f ./Dockerfile-ftp .
+      fi;
+      
       exit 0
     ;;
 
@@ -25,14 +29,20 @@ case $cmd in
         docker run -p 36379:6379 --name my-redis -v $PWD/data/redis:/data -d redis redis-server  # --appendonly yes
       fi;
 
+      if [[ $param =~ 'ftp' ]]; then
+        docker run -d -v $PWD/data/vsftpd:/home/vsftpd -p 20:20 -p 21:21 -p 21100-21110:21100-21110 -e FTP_USER=cg -e FTP_PASS=cg112233 --name my-vsftpd fauria/vsftpd
+      fi;
+      
       exit 0
     ;;
 
 esac
     echo "use: sh build.sh build mysql"
     echo "use: sh build.sh build redis"
+    echo "use: sh build.sh build ftp"
+    echo "---"
     echo "use: sh build.sh run mysql"
     echo "use: sh build.sh run redis"
-
+    echo "use: sh build.sh run ftp"
 exit 0;
 

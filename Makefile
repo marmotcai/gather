@@ -65,10 +65,13 @@ build-image:
 		then DOCKERFILE_PATH="./s3cmd/Dockerfile-centos-s3cmd" make image; fi
 
 	if [ "$(name)" = "mysql" ]; \
-		then cd db; sh build.sh mysql; cd ..; exit 0; fi
+		then cd server; sh build.sh mysql; cd ..; exit 0; fi
 	
 	if [ "$(name)" = "redis" ]; \
-		then cd db; sh build.sh redis; cd ..;  exit 0; fi
+		then cd server; sh build.sh redis; cd ..;  exit 0; fi
+	
+	if [ "$(name)" = "ftp" ]; \
+		then cd server; sh build.sh ftp; cd ..;  exit 0; fi
 image:
 
 	echo $(name) '-' $(tag) '>>' $(image)
@@ -89,12 +92,12 @@ test:
 
 	if [ "$(image)" = "marmotcai/mysql" ]; \
 		then docker run --rm -ti $(image) /bin/bash; \
-		#then docker run --rm -ti -v $(shell pwd)/db/data/mysql:/etc/mysql $(image) /bin/bash; \
+		#then docker run --rm -ti -v $(shell pwd)/server/data/mysql:/etc/mysql $(image) /bin/bash; \
 	 exit 0; fi		
 	
 	if [ "$(image)" = "marmotcai/redis" ]; \
-		then docker run --rm -ti -v $(shell pwd)/db/data/redis:/etc/redis $(image) /bin/bash; \
-	exit 0; fi		
+		then docker run --rm -ti -v $(shell pwd)/server/data/redis:/etc/redis $(image) /bin/bash; \
+	exit 0; fi
 
 	docker run --rm -ti $(image) /bin/bash
 
