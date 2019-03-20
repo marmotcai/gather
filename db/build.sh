@@ -12,6 +12,8 @@ case $cmd in
       if [[ $param =~ 'redis' ]]; then
         docker build -t marmotcai/redis -f ./Dockerfile-redis .
       fi;
+
+      exit 0
     ;;
 
     run)
@@ -20,9 +22,10 @@ case $cmd in
       fi
 
       if [[ $param =~ 'redis' ]]; then
-        docker run -p 36379:6379 --name my-redis -v $PWD/data/redis:/data -d redis redis-server
-        # --appendonly yes
+        docker run -p 36379:6379 --name my-redis -v $PWD/data/redis:/data -d redis redis-server  # --appendonly yes
       fi;
+
+      exit 0
     ;;
 
 esac
