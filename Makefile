@@ -15,6 +15,8 @@ help:
 		echo "         make build-image name=golang tag=golang image=marmotcai/golang"
 		echo "         make build-image name=go-mediainfo tag=go-mediainfo image=marmotcai/go-mediainfo"
 		echo "         make build-image name=s3cmd tag=s3cmd image=marmotcai/s3cmd"
+		echo "         make build-image name=mysql tag=mysql image=marmotcai/mysql"
+		echo "         make build-image name=redis tag=redis image=marmotcai/redis"
 		echo "use: make build projecturl"
 		echo "    e.g: make build http://git.atoml.com/taoyang/hangu-epg.git"
 		echo "use: make test image=xx"
@@ -62,6 +64,11 @@ build-image:
 	if [ "$(name)" = "s3cmd" ]; \
 		then DOCKERFILE_PATH="./s3cmd/Dockerfile-centos-s3cmd" make image; fi
 
+	if [ "$(name)" = "mysql" ]; \
+		then cd db; sh build.sh mysql; cd ..; exit 0; fi
+	
+	if [ "$(name)" = "redis" ]; \
+		then cd db; sh build.sh redis; cd ..;  exit 0; fi
 image:
 
 	echo $(name) '-' $(tag) '>>' $(image)
@@ -79,7 +86,16 @@ test:
 	        
 	if [ "$(image)" = "marmotcai/go-mediainfo" ]; \
 		then docker run --rm -ti -v $(shell pwd)/mediainfo/data:/root/go/src/data $(image) /bin/bash; exit 0; fi
-		
+
+	if [ "$(image)" = "marmotcai/mysql" ]; \
+		then docker run --rm -ti $(image) /bin/bash; \
+		#then docker run --rm -ti -v $(shell pwd)/db/data/mysql:/etc/mysql $(image) /bin/bash; \
+	 exit 0; fi		
+	
+	if [ "$(image)" = "marmotcai/redis" ]; \
+		then docker run --rm -ti -v $(shell pwd)/db/data/redis:/etc/redis $(image) /bin/bash; \
+	exit 0; fi		
+
 	docker run --rm -ti $(image) /bin/bash
 
 
