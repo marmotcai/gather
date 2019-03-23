@@ -1,0 +1,9 @@
+FROM minio/minio
+
+MAINTAINER marmotcai "marmotcai@163.com"
+
+ENV MINIO_ACCESS_KEY cg12345678
+ENV MINIO_SECRET_KEY cg12345678
+
+ENV WORK_DIR /root/minio
+WORKDIR ${WORK_DIR}
