@@ -32,7 +32,17 @@ case $cmd in
       if [[ $param =~ 'ftp' ]]; then
         docker run -d -v $PWD/data/vsftpd:/home/vsftpd -p 20:20 -p 21:21 -p 21100-21110:21100-21110 -e FTP_USER=cg -e FTP_PASS=cg112233 --name my-vsftpd fauria/vsftpd
       fi;
-      
+
+      if [[ $param =~ 'minio' ]]; then
+	docker run -p 9000:9000 \
+                   --name my-minio \
+                   -e "MINIO_ACCESS_KEY=4V1cweFJGTlhjM2hOUkVGM1RVUm9RV0l5U25GYVYwNHdURmhLTTA5WE9WcE5Wa1U5PNJI" \
+                   -e "MINIO_SECRET_KEY=4WVRGQ01GWklVak50VWpGamMyWmFZV014Y0ZWbFFUMDk=qEyE" \
+                   -v $PWD/data/minio/data:/data \
+                   -v $PWD/data/minio/config:/root/.minio \
+                   -d minio/minio server /data
+      fi;
+
       exit 0
     ;;
 
@@ -44,5 +54,6 @@ esac
     echo "use: sh build.sh run mysql"
     echo "use: sh build.sh run redis"
     echo "use: sh build.sh run ftp"
+    echo "use: sh build.sh run minio"
 exit 0;
 
