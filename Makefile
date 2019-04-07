@@ -12,7 +12,7 @@ help:
 		echo "         make build-image name=cordova tag=cordova image=marmotcai/cordova"
 		echo "         make build-image name=ionic tag=ionic image=marmotcai/ionic"
 		echo "         make build-image name=ceph-deploy tag=ceph-deploy image=marmotcai/ceph-deploy"
-		echo "         make build-image name=golang tag=golang image=marmotcai/golang"
+		echo "         make build-image name=golang tag=golang-base image=marmotcai/golang"
 		echo "         make build-image name=go-mediainfo tag=go-mediainfo image=marmotcai/go-mediainfo"
 		echo "         make build-image name=s3cmd tag=s3cmd image=marmotcai/s3cmd"
 		echo "         make build-image name=mysql tag=mysql image=marmotcai/mysql"

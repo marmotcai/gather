@@ -1,4 +1,4 @@
-FROM marmotcai/centos-base AS golang
+FROM marmotcai/centos-base AS golang-base
 
 MAINTAINER marmotcai "marmotcai@163.com"
 
@@ -7,17 +7,13 @@ ENV WORK_DIR /usr/local
 ENV GOROOT $WORK_DIR/go
 ENV GOPATH /root/go
 ENV PATH $PATH:$GOROOT/bin:$GOPATH/bin
+
 RUN curl https://dl.google.com/go/go$GOLANG_VERSION.linux-amd64.tar.gz | tar xz -C $WORK_DIR && \
         mkdir -p $GOPATH
-
-RUN go get -u github.com/gpmgo/gopm
-
-RUN gopm get -g golang.org/x/sys  
-RUN gopm get -g golang.org/x/text
-RUN gopm get -g golang.org/x/time 
-RUN gopm get -g golang.org/x/crypto 
-RUN gopm get -g golang.org/x/net
 
 RUN go version
 
 WORKDIR $GOPATH
+
+RUN go get -u github.com/gpmgo/gopm
+
