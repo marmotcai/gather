@@ -17,6 +17,15 @@ RUN yum clean all && \
 
 RUN yum update -y && yum install -y vim wget sudo git openssh openssh-server openssh-clients
 
+#向容器安装中文编码支持
+RUN  yum -y install kde-l10n-Chinese telnet && \
+     yum -y reinstall glibc-common &&\
+     yum clean all  && \
+     localedef -c -f UTF-8 -i zh_CN zh_CN.utf8
+
+#设置容器编码格式
+ENV LC_ALL "zh_CN.UTF-8"
+
 RUN mkdir /var/run/sshd
 RUN ssh-keygen -t rsa -f /etc/ssh/ssh_host_rsa_key
 RUN ssh-keygen -t dsa -f /etc/ssh/ssh_host_dsa_key
