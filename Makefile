@@ -17,6 +17,7 @@ help:
 		echo "         make build-image name=s3cmd tag=s3cmd image=marmotcai/s3cmd"
 		echo "         make build-image name=mysql tag=mysql image=marmotcai/mysql"
 		echo "         make build-image name=redis tag=redis image=marmotcai/redis"
+		echo "         make build-image name=nginx tag=nginx image=marmotcai/nginx"
 		echo "use: make build projecturl"
 		echo "    e.g: make build http://git.atoml.com/taoyang/hangu-epg.git"
 		echo "use: make test image=xx"
@@ -72,6 +73,9 @@ build-image:
 	
 	if [ "$(name)" = "ftp" ]; \
 		then cd server; sh build.sh ftp; cd ..;  exit 0; fi
+
+	if [ "$(name)" = "nginx" ]; \
+		then cd server; sh build.sh nginx; cd ..;  exit 0; fi
 image:
 
 	echo $(name) '-' $(tag) '>>' $(image)

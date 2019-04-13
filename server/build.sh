@@ -16,6 +16,10 @@ case $cmd in
       if [[ $param =~ 'ftp' ]]; then
         docker build -t marmotcai/ftp -f ./Dockerfile-ftp .
       fi;
+
+      if [[ $param =~ 'nginx' ]]; then
+        docker build -t marmotcai/nginx -f ./Dockerfile-nginx .
+      fi;
       
       exit 0
     ;;
@@ -43,6 +47,16 @@ case $cmd in
                    -d minio/minio server /data
       fi;
 
+      if [[ $param =~ 'nginx' ]]; then
+        docker run -p 3178:80 -p 3172:22 --name my-webserver -v $PWD/data/nginx/html:/usr/local/nginx/html -d marmotcai/nginx
+      fi
+
+      exit 0
+    ;;
+
+    test)
+      docker run --rm -ti $param /bin/bash
+
       exit 0
     ;;
 
@@ -50,10 +64,15 @@ esac
     echo "use: sh build.sh build mysql"
     echo "use: sh build.sh build redis"
     echo "use: sh build.sh build ftp"
+    echo "use: sh build.sh build nginx"
     echo "---"
     echo "use: sh build.sh run mysql"
     echo "use: sh build.sh run redis"
     echo "use: sh build.sh run ftp"
     echo "use: sh build.sh run minio"
+    echo "use: sh build.sh run nginx"
+    echo "---"
+    echo "use: sh build.sh test imagesname"
+
 exit 0;
 
