@@ -48,7 +48,7 @@ case $cmd in
       fi;
 
       if [[ $param =~ 'nginx' ]]; then
-        docker run -p 3178:80 -p 3172:22 --name my-webserver -v $PWD/data/nginx/html:/usr/local/nginx/html -d marmotcai/nginx
+        docker run -p 80:80 --name my-webserver -v $PWD/data/nginx:/data -d marmotcai/nginx
       fi
 
       exit 0
