@@ -19,8 +19,8 @@ RUN make && make install
 
 WORKDIR ${NGINX_INSTALLPATH}
 
-RUN sed '1 a\user root;' ${NGINX_INSTALLPATH}/conf/nginx.conf && \
-    sed '$i include /data/vhost/*.conf;' ${NGINX_INSTALLPATH}/conf/nginx.conf
+RUN sed -i '1 a\user root;' ./conf/nginx.conf && \
+    sed -i '$i include /data/vhost/*.conf;' ./conf/nginx.conf
 
 EXPOSE 80
 
