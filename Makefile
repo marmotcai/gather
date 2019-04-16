@@ -5,7 +5,8 @@ help:
 		echo "use: make build-image name=xx tag=xx image=xx"
 		echo "    e.g: make build-image name=ubuntu tag=base image=marmotcai/ubuntu-base"
 		echo "         make build-image name=centos tag=base image=marmotcai/centos-base"
-		echo "         make build-image name=java tag=java image=marmotcai/java"
+		echo "         make build-image name=ubuntu-java tag=java image=marmotcai/ubuntu-java"
+		echo "         make build-image name=centos-java tag=java image=marmotcai/centos-java"
 		echo "         make build-image name=android-sdk tag=android-sdk image=marmotcai/android-sdk"
 		echo "         make build-image name=android-ndk tag=android-ndk image=marmotcai/android-ndk"
 		echo "         make build-image name=nodejs tag=nodejs image=marmotcai/nodejs"
@@ -35,8 +36,11 @@ build-image:
 	if [ "$(name)" = "centos" ]; \
 		then DOCKERFILE_PATH="./base/Dockerfile-centos-base" make image; fi
 
-	if [ "$(name)" = "java" ]; \
-		then DOCKERFILE_PATH="./base/Dockerfile-java" make image; fi
+	if [ "$(name)" = "ubuntu-java" ]; \
+		then DOCKERFILE_PATH="./base/Dockerfile-ubuntu-java" make image; fi
+
+	if [ "$(name)" = "centos-java" ]; \
+		then DOCKERFILE_PATH="./base/Dockerfile-centos-java" make image; fi
 
 	if [ "$(name)" = "android-sdk" ]; \
 		then DOCKERFILE_PATH="./android/Dockerfile-sdk" make image; fi
