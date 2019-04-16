@@ -51,6 +51,19 @@ case $cmd in
         docker run -p 80:80 --name my-webserver -v $PWD/data/nginx:/data -d marmotcai/nginx
       fi
 
+      if [[ $param =~ 'dnsmasq' ]]; then
+        docker run -d \
+                   --name my-dnsmasq \
+                   -p 53:53/udp \
+                   -p 5380:8080 \
+                   -v $PWD/data/dnsmasq/dnsmasq.conf:/etc/dnsmasq.conf \
+                   --log-opt "max-size=100m" \
+                   -e "HTTP_USER=admin" \
+                   -e "HTTP_PASS=cg112233" \
+                   --restart always \
+                   jpillora/dnsmasq
+      fi
+
       exit 0
     ;;
 
@@ -71,6 +84,7 @@ esac
     echo "use: sh build.sh run ftp"
     echo "use: sh build.sh run minio"
     echo "use: sh build.sh run nginx"
+    echo "use: sh build.sh run dnsmasq"
     echo "---"
     echo "use: sh build.sh test imagesname"
 
