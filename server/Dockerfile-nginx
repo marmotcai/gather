@@ -22,6 +22,8 @@ WORKDIR ${NGINX_INSTALLPATH}
 RUN sed -i '1 a\user root;' ./conf/nginx.conf && \
     sed -i '$i include /data/vhost/*.conf;' ./conf/nginx.conf
 
+RUN rm -rf ${NGINX_DIR}/${NGINX_NAME}
+
 EXPOSE 80
 
 ENTRYPOINT ["/usr/local/nginx/sbin/nginx","-g", "daemon off;"]
