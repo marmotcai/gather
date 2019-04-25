@@ -14,6 +14,7 @@ help:
 		echo "         make build-image name=ionic tag=ionic image=marmotcai/ionic"
 		echo "         make build-image name=ceph-deploy tag=ceph-deploy image=marmotcai/ceph-deploy"
 		echo "         make build-image name=golang tag=golang-base image=marmotcai/golang"
+		echo "         make build-image name=golang-arm tag=golang-base image=marmotcai/golang-arm"
 		echo "         make build-image name=go-mediainfo tag=go-mediainfo image=marmotcai/go-mediainfo"
 		echo "         make build-image name=s3cmd tag=s3cmd image=marmotcai/s3cmd"
 		echo "         make build-image name=mysql tag=mysql image=marmotcai/mysql"
@@ -62,6 +63,9 @@ build-image:
 
 	if [ "$(name)" = "golang" ]; \
 		then DOCKERFILE_PATH="./golang/Dockerfile-centos-golang" make image; fi
+
+	if [ "$(name)" = "golang-arm" ]; \
+		then DOCKERFILE_PATH="./golang/Dockerfile-centos-golang-arm" make image; fi
 
 	if [ "$(name)" = "go-mediainfo" ]; \
 		then DOCKERFILE_PATH="./mediainfo/Dockerfile-golang-mediainfo" make image; fi
