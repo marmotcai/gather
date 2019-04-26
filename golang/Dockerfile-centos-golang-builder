@@ -1,0 +1,16 @@
+FROM marmotcai/golang AS golang-builder
+
+MAINTAINER marmotcai "marmotcai@163.com"
+
+ENV APP_GIT_URL=""
+
+COPY golang/build.sh $GOBIN/build
+
+RUN chmod +x $GOBIN/build
+
+VOLUME ["/root/output"]
+
+WORKDIR /root
+
+CMD ["build"]
+

@@ -2,13 +2,13 @@ FROM marmotcai/centos-base AS golang-base
 
 MAINTAINER marmotcai "marmotcai@163.com"
 
-RUN yum install -y gcc g++
+RUN yum install -y gcc gcc-c++
 
 ENV WORK_DIR /root
 ENV BOOTSTRAP_URL "https://dl.google.com/go/go1.4.3.linux-amd64.tar.gz"
 ENV GOLANG_URL "https://dl.google.com/go/go1.12.4.linux-amd64.tar.gz"
 
-ENV GOROOT_BOOTSTRAP=$WORK_DIR/bootstrap
+ENV GOROOT_BOOTSTRAP_DIR=$WORK_DIR/bootstrap
 ENV GOROOT $WORK_DIR/go
 ENV GOPATH $WORK_DIR/mygo
 ENV PATH $PATH:$GOROOT/bin:$GOPATH/bin
@@ -18,21 +18,26 @@ WORKDIR ${WORK_DIR}
 RUN wget -O ${WORK_DIR}/bootstrap.tar.gz ${BOOTSTRAP_URL} && \
     wget -O ${WORK_DIR}/go.tar.gz ${GOLANG_URL}
 
-RUN mkdir -p ${GOROOT_BOOTSTRAP} && \
-    tar -zxvf ${WORK_DIR}/bootstrap.tar.gz -C ${GOROOT_BOOTSTRAP} && \
+RUN mkdir -p ${GOROOT_BOOTSTRAP_DIR} && \
+    tar -zxvf ${WORK_DIR}/bootstrap.tar.gz -C ${GOROOT_BOOTSTRAP_DIR} && \
     rm -f ${WORK_DIR}/bootstrap.tar.gz
 
-RUN cd ${GOROOT_BOOTSTRAP}/go/src && \
+RUN cd ${GOROOT_BOOTSTRAP_DIR}/go/src/ && \
     ./make.bash
 
+ENV GOROOT_BOOTSTRAP=$WORK_DIR/bootstrap/go
 RUN mkdir -p ${GOROOT} && \
     tar -zxvf ${WORK_DIR}/go.tar.gz -C ${WORK_DIR} && \
     rm -f ${WORK_DIR}/go.tar.gz
 
-RUN cd $GOROOT/src && \
+RUN cd $GOROOT/src/ && \
     ./make.bash
-
-RUN go version
 
 RUN go get -u github.com/gpmgo/gopm
 
+ENV GOBIN=$GOPATH/bin
+ENV CGO_ENABLE=0
+ENV GOARCH=amd64
+ENV GOOS=linux
+
+RUN go version

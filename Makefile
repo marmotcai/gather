@@ -14,7 +14,7 @@ help:
 		echo "         make build-image name=ionic tag=ionic image=marmotcai/ionic"
 		echo "         make build-image name=ceph-deploy tag=ceph-deploy image=marmotcai/ceph-deploy"
 		echo "         make build-image name=golang tag=golang-base image=marmotcai/golang"
-		echo "         make build-image name=golang-arm tag=golang-base image=marmotcai/golang-arm"
+		echo "         make build-image name=golang-builder tag=golang-builder image=marmotcai/golang-builder"
 		echo "         make build-image name=go-mediainfo tag=go-mediainfo image=marmotcai/go-mediainfo"
 		echo "         make build-image name=s3cmd tag=s3cmd image=marmotcai/s3cmd"
 		echo "         make build-image name=mysql tag=mysql image=marmotcai/mysql"
@@ -64,8 +64,8 @@ build-image:
 	if [ "$(name)" = "golang" ]; \
 		then DOCKERFILE_PATH="./golang/Dockerfile-centos-golang" make image; fi
 
-	if [ "$(name)" = "golang-arm" ]; \
-		then DOCKERFILE_PATH="./golang/Dockerfile-centos-golang-arm" make image; fi
+	if [ "$(name)" = "golang-builder" ]; \
+		then DOCKERFILE_PATH="./golang/Dockerfile-centos-golang-builder" make image; fi
 
 	if [ "$(name)" = "go-mediainfo" ]; \
 		then DOCKERFILE_PATH="./mediainfo/Dockerfile-golang-mediainfo" make image; fi
@@ -111,8 +111,13 @@ test:
 		then docker run --rm -ti -v $(shell pwd)/server/data/redis:/etc/redis $(image) /bin/bash; \
 	exit 0; fi
 
+	if [ "$(image)" = "marmotcai/golang-builder" ]; \
+		then docker run --rm -ti -v $(shell pwd)/golang/output:/root/output $(image) build github.com/lijianfeng1993/go_test ttt ; \
+	exit 0; fi
+
 	docker run --rm -ti $(image) /bin/bash
 
 
 .PHONY: help build-image image test push
 .SILENT:
+
