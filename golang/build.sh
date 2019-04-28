@@ -13,7 +13,8 @@ if  [[ ${app_name} = '' ]]; then
   app_name="yourapp"
 fi
 
-gopm get -g -v ${git_url}
+go get -v ${git_url}
+# gopm get -g -v ${git_url}
 
 cd $GOPATH/src/${git_url}
 

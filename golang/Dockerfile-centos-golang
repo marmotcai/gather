@@ -41,3 +41,7 @@ ENV GOARCH=amd64
 ENV GOOS=linux
 
 RUN go version
+
+EXPOSE 22
+
+CMD /usr/sbin/sshd -D

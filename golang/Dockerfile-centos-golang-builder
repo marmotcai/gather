@@ -4,8 +4,9 @@ MAINTAINER marmotcai "marmotcai@163.com"
 
 ENV APP_GIT_URL=""
 
-# COPY golang/build.sh $GOBIN/build
-RUN wget -O $GOBIN/build https://raw.githubusercontent.com/marmotcai/gather/master/golang/build.sh
+COPY golang/build.sh $GOBIN/build
+#RUN wget -O $GOBIN/build https://raw.githubusercontent.com/marmotcai/gather/master/golang/build.sh
+
 RUN chmod +x $GOBIN/build
 
 VOLUME ["/root/output"]
