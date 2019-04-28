@@ -5,15 +5,16 @@ MAINTAINER marmotcai "marmotcai@163.com"
 RUN yum install -y gcc gcc-c++
 
 ENV WORK_DIR /root
+WORKDIR ${WORK_DIR}
+
 ENV BOOTSTRAP_URL "https://dl.google.com/go/go1.4.3.linux-amd64.tar.gz"
 ENV GOLANG_URL "https://dl.google.com/go/go1.12.4.linux-amd64.tar.gz"
 
 ENV GOROOT_BOOTSTRAP_DIR=$WORK_DIR/bootstrap
 ENV GOROOT $WORK_DIR/go
 ENV GOPATH $WORK_DIR/mygo
-ENV PATH $PATH:$GOROOT/bin:$GOPATH/bin
-
-WORKDIR ${WORK_DIR}
+ENV GOBIN=$GOPATH/bin
+ENV PATH $PATH:$GOROOT/bin:$GOBIN
 
 RUN wget -O ${WORK_DIR}/bootstrap.tar.gz ${BOOTSTRAP_URL} && \
     wget -O ${WORK_DIR}/go.tar.gz ${GOLANG_URL}
@@ -35,12 +36,19 @@ RUN cd $GOROOT/src/ && \
 
 RUN go get -u github.com/gpmgo/gopm
 
-ENV GOBIN=$GOPATH/bin
-ENV CGO_ENABLE=0
-ENV GOARCH=amd64
-ENV GOOS=linux
+RUN sed -i '$a\export WORK_DIR=/root' /etc/profile
+RUN sed -i '$a\export GOROOT_BOOTSTRAP=$WORK_DIR/bootstrap' /etc/profile
+RUN sed -i '$a\export GOROOT=$WORK_DIR/go' /etc/profile
+RUN sed -i '$a\export GOPATH=$WORK_DIR/mygo' /etc/profile
+RUN sed -i '$a\export GOBIN=$WORK_DIR/mygo/bin' /etc/profile
+RUN sed -i '$a\export PATH=$PATH:$WORK_DIR/go/bin:$WORK_DIR/mygo/bin' /etc/profile
 
-RUN go version
+COPY golang/goenv.sh $GOBIN/goenv
+#RUN wget -O $GOBIN/goenv https://raw.githubusercontent.com/marmotcai/gather/master/golang/goenv.sh
+RUN chmod +x $GOBIN/goenv && \
+    goenv init
+
+RUN go env
 
 EXPOSE 22
 

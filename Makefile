@@ -111,11 +111,15 @@ test:
 		then docker run --rm -ti -v $(shell pwd)/server/data/redis:/etc/redis $(image) /bin/bash; \
 	exit 0; fi
 
+	if [ "$(image)" = "marmotcai/golang" ]; \
+		then docker rm -f my-golang; docker run -ti -v /root/mygo/src:/root/mygo/src --name my-golang -p 9022:22 -d $(image); \
+	exit 0; fi
+
 	if [ "$(image)" = "marmotcai/golang-builder" ]; \
 		then docker run --rm -ti -v $(shell pwd)/golang/output:/root/output $(image) build github.com/lijianfeng1993/go_test ttt ; \
 	exit 0; fi
 
-	docker run --rm -ti $(image) /bin/bash
+	# docker run --rm -ti $(image) /bin/bash
 
 
 .PHONY: help build-image image test push
