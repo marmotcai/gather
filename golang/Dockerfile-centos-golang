@@ -43,8 +43,8 @@ RUN sed -i '$a\export GOPATH=$WORK_DIR/mygo' /etc/profile
 RUN sed -i '$a\export GOBIN=$WORK_DIR/mygo/bin' /etc/profile
 RUN sed -i '$a\export PATH=$PATH:$WORK_DIR/go/bin:$WORK_DIR/mygo/bin' /etc/profile
 
-COPY golang/goenv.sh $GOBIN/goenv
-#RUN wget -O $GOBIN/goenv https://raw.githubusercontent.com/marmotcai/gather/master/golang/goenv.sh
+#COPY golang/goenv.sh $GOBIN/goenv
+RUN wget -O $GOBIN/goenv https://raw.githubusercontent.com/marmotcai/gather/master/golang/goenv.sh
 RUN chmod +x $GOBIN/goenv && \
     goenv init
 
