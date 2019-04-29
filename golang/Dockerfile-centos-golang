@@ -8,7 +8,7 @@ ENV WORK_DIR /root
 WORKDIR ${WORK_DIR}
 
 ENV BOOTSTRAP_URL "https://dl.google.com/go/go1.4.3.linux-amd64.tar.gz"
-ENV GOLANG_URL "https://dl.google.com/go/go1.12.4.linux-amd64.tar.gz"
+ENV GOLANG_URL "https://dl.google.com/go/go1.11.2.linux-amd64.tar.gz"
 
 ENV GOROOT_BOOTSTRAP_DIR=$WORK_DIR/bootstrap
 ENV GOROOT $WORK_DIR/go
