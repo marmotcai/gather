@@ -35,6 +35,7 @@ RUN cd $GOROOT/src/ && \
     ./make.bash
 
 RUN go get -u github.com/gpmgo/gopm
+RUN go get -u github.com/kardianos/govendor
 
 RUN sed -i '$a\export WORK_DIR=/root' /etc/profile
 RUN sed -i '$a\export GOROOT_BOOTSTRAP=$WORK_DIR/bootstrap' /etc/profile
