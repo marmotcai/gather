@@ -2,16 +2,13 @@ FROM marmotcai/golang AS golang-builder
 
 MAINTAINER marmotcai "marmotcai@163.com"
 
-ENV APP_GIT_URL=""
-
+ENV APP_GIT_URL="github.com/minio/minio"
+RUN go get -u -v $APP_GIT_URL
 #COPY golang/build.sh $GOBIN/build
-RUN wget -O $GOBIN/build https://raw.githubusercontent.com/marmotcai/gather/master/golang/build.sh
-
-RUN chmod +x $GOBIN/build
-
+#RUN wget -O $GOBIN/build https://raw.githubusercontent.com/marmotcai/gather/master/golang/build.sh
+#RUN chmod +x $GOBIN/build
 VOLUME ["/root/output"]
-
 WORKDIR /root
 
-CMD ["build"]
+#CMD ["build"]
 
