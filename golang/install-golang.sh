@@ -11,7 +11,7 @@ sed -i '$a\export PATH=$PATH:/root/go/bin:/root/mygo/bin' /etc/profile
 source /etc/profile
 
 BOOTSTRAP_URL="https://dl.google.com/go/go1.4.3.linux-amd64.tar.gz"
-GOLANG_URL="https://dl.google.com/go/go1.11.2.linux-amd64.tar.gz"
+GOLANG_URL="https://dl.google.com/go/go1.12.5.linux-amd64.tar.gz"
 
 wget -O ${WORK_DIR}/bootstrap.tar.gz ${BOOTSTRAP_URL}
 wget -O ${WORK_DIR}/go.tar.gz ${GOLANG_URL}
@@ -35,7 +35,7 @@ go get -u -v github.com/gpmgo/gopm
 go get -u -v github.com/kardianos/govendor
 go get -u -v github.com/tools/godep
 
-wget -O $GOBIN/goenv https://raw.githubusercontent.com/marmotcai/gather/master/golang/goenv.sh
-chmod +x $GOBIN/goenv
-goenv init
+#wget -O $GOBIN/goenv https://raw.githubusercontent.com/marmotcai/gather/master/golang/goenv.sh
+#chmod +x $GOBIN/goenv
+#goenv init
 
