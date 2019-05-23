@@ -30,7 +30,8 @@ case $cmd in
       fi
 
       if [[ $param =~ 'redis' ]]; then
-        docker run -p 36379:6379 --name my-redis -v $PWD/data/redis:/data -d redis redis-server  # --appendonly yes
+        docker rm -f my-redis
+        docker run -p 36379:6379 --name my-redis -v $PWD/data/redis:/data -d --restart=always redis redis-server --appendonly yes # --requirepass "cg112233"
       fi;
 
       if [[ $param =~ 'ftp' ]]; then
@@ -49,6 +50,25 @@ case $cmd in
 
       if [[ $param =~ 'nginx' ]]; then
         docker run -p 80:80 --name my-webserver -v $PWD/data/nginx:/data -d marmotcai/nginx
+      fi
+
+      if [[ $param =~ 'jumpserver' ]]; then
+        if [ "$SECRET_KEY" = "" ]; then SECRET_KEY=`cat /dev/urandom | tr -dc A-Za-z0-9 | head -c 50`; echo "SECRET_KEY=$SECRET_KEY" >> ~/.bashrc; echo $SECRET_KEY; else echo $SECRET_KEY; fi
+        if [ "$BOOTSTRAP_TOKEN" = "" ]; then BOOTSTRAP_TOKEN=`cat /dev/urandom | tr -dc A-Za-z0-9 | head -c 16`; echo "BOOTSTRAP_TOKEN=$BOOTSTRAP_TOKEN" >> ~/.bashrc; echo $BOOTSTRAP_TOKEN; else echo $BOOTSTRAP_TOKEN; fi
+
+        docker rm -f my-jumpserver
+        docker run --name my-jumpserver -d -p 3080:80 -p 3022:2222 \
+                   -e SECRET_KEY=$SECRET_KEY \
+                   -e BOOTSTRAP_TOKEN=$BOOTSTRAP_TOKEN \
+                   -e DB_HOST=192.168.2.6 \
+                   -e DB_PORT=33306 \
+                   -e DB_USER=root \
+                   -e DB_PASSWORD=cg112233 \
+                   -e DB_NAME=jumpserver \
+                   -e REDIS_HOST=192.168.2.6 \
+                   -e REDIS_PORT=36379 \
+                   -e REDIS_PASSWORD= \
+                   jumpserver/jms_all:latest
       fi
 
       if [[ $param =~ 'dnsmasq' ]]; then
@@ -84,6 +104,7 @@ esac
     echo "use: sh build.sh run ftp"
     echo "use: sh build.sh run minio"
     echo "use: sh build.sh run nginx"
+    echo "use: sh build.sh run jumpserver"
     echo "use: sh build.sh run dnsmasq"
     echo "---"
     echo "use: sh build.sh test imagesname"
