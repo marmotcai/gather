@@ -16,6 +16,7 @@ help:
 		echo "         make build-image name=golang tag=golang-base image=marmotcai/golang"
 		echo "         make build-image name=golang-builder tag=golang-builder image=marmotcai/golang-builder"
 		echo "         make build-image name=go-mediainfo tag=go-mediainfo image=marmotcai/go-mediainfo"
+		echo "         make build-image name=python tag=python-builder image=marmotcai/python-builder"
 		echo "         make build-image name=s3cmd tag=s3cmd image=marmotcai/s3cmd"
 		echo "         make build-image name=mysql tag=mysql image=marmotcai/mysql"
 		echo "         make build-image name=redis tag=redis image=marmotcai/redis"
@@ -69,6 +70,9 @@ build-image:
 
 	if [ "$(name)" = "go-mediainfo" ]; \
 		then DOCKERFILE_PATH="./mediainfo/Dockerfile-golang-mediainfo" make image; fi
+
+	if [ "$(name)" = "python" ]; \
+		then DOCKERFILE_PATH="./python/Dockerfile" make image; fi
 
 	if [ "$(name)" = "s3cmd" ]; \
 		then DOCKERFILE_PATH="./s3cmd/Dockerfile-centos-s3cmd" make image; fi
