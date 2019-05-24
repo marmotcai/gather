@@ -1,10 +1,16 @@
-FROM python3.5 AS python-builder
+FROM python AS python-builder
 
 MAINTAINER marmotcai "marmotcai@163.com"
 
-ENV WORK_DIR /root
+ENV WORK_DIR=/root
 WORKDIR ${WORK_DIR}
 
-RUN python
+ENV APP_NAME=easyquotation
+ENV APP_GIT_URL=https://github.com/shidenggui/easyquotation.git
 
-ENTRYPOINT [ "python" ]
+RUN git clone $APP_GIT_URL
+
+#RUN cd $APP_NAME && \
+#    python setup.py install
+
+# ENTRYPOINT [ "python" ]
