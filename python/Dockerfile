@@ -20,4 +20,4 @@ RUN git clone $APP_GIT_URL
 RUN cd $APP_NAME && \
     python setup.py install
 
-# ENTRYPOINT [ "python" ]
+ENTRYPOINT [ "/bin/bash" ]

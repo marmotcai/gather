@@ -123,7 +123,11 @@ test:
 		then docker run --rm -ti -v $(shell pwd)/golang/output:/root/output $(image) build github.com/lijianfeng1993/go_test ttt ; \
 	exit 0; fi
 
-	docker run --rm -ti $(image) /bin/bash
+	if [ "$(image)" = "marmotcai/python-builder" ]; \
+		then docker run --rm -ti -v $(shell pwd)/python/data:/root/output $(image) /bin/bash ; \
+	exit 0; fi
+
+	# docker run --rm -ti $(image) /bin/bash
 
 
 .PHONY: help build-image image test push
