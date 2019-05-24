@@ -1,5 +1,7 @@
 FROM marmotcai/golang AS golang-builder
 
+RUN go version && go env
+
 ENV APP_GIT_URL="https://github.com/minio/minio"
 ENV APP_PATH=$GOPATH/src/github.com/minio
 
@@ -9,7 +11,7 @@ WORKDIR $APP_PATH
 
 RUN git clone $APP_GIT_URL
 RUN cd minio && \
-    go install
+    GO111MODULE=on go build
     
 #RUN gopm bin
 #RUN gopm clean
