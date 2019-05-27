@@ -10,7 +10,7 @@ libs
 captures
 .externalNativeBuild
 .DS_Store
-
+venv
 *.ipr
 *.iws
 out
