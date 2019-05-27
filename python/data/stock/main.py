@@ -11,7 +11,6 @@ class orders:
         self.price = 0 # 委托价格
         self.time = 0 # 委托时间
         self.volume = 0 # 委托数量
-        self.charge = 0 # 手续费
         self.marketinfo = 0 # 当前行情信息
 
 class marketinfos:
@@ -41,12 +40,8 @@ class BaseStock():
 
     #########################################################################################
 
-    def run(self):
-        self.output()
+    def calc_charge(self, type, price, volume):
 
-    #########################################################################################
-
-    def bid(self, type, marketinfo, volume):
         def charge_buy(price, volume):
             total_sum = price * volume
             commission = round(total_sum * 0.03) / 100 # 佣金
@@ -58,17 +53,8 @@ class BaseStock():
 
             stamp = 0
             total_charge = round((commission + transfer + stamp) * 100) / 100
-            print("买入总税费：" + str(total_charge))
 
-            order = orders()
-            order.code = self.stock_code
-            order.type = 1
-            order.price = price
-            order.volume = volume
-            order.charge = total_charge
-            order.time = datetime.datetime.now()
-
-            return order
+            return total_charge
 
         #########################################################################################
 
@@ -84,26 +70,60 @@ class BaseStock():
             stamp = round(total_sum * 0.1) / 100 # 印花税
 
             total_charge = round((commission + transfer + stamp) * 100) / 100
-            print("卖出总税费：" + str(total_charge))
 
+            return total_charge
+
+        charge = {'buy': charge_buy,
+                  'sell': charge_sell}
+
+        c = charge[type]
+        return c(price, volume)
+
+    def calc_profit(self, buy, sell, volume):
+        order_buy = buy
+        order_sell = sell
+        charge_buy = self.calc_charge("buy", buy, volume)
+        charge_sell = self.calc_charge("sell", sell, volume)
+
+        profit = round(volume * (order_sell - order_buy) * 100) / 100 - charge_buy - charge_sell
+
+        print("买入总税费：" + str(charge_buy))
+        print("卖出总税费：" + str(charge_sell))
+        print("本次利润：" + str(profit))
+        return profit
+
+    #########################################################################################
+
+    def bid(self, type, marketinfo, volume):
+        def bid_buy(price, volume):
             order = orders()
             order.code = self.stock_code
-            order.type = 0
+            order.type = 1
             order.price = price
             order.volume = volume
-            order.charge = total_charge
             order.time = datetime.datetime.now()
 
             return order
 
         #########################################################################################
 
-        charge = {'buy': charge_buy,
-                  'sell': charge_sell}
+        def bid_sell(price, volume):
+            order = orders()
+            order.code = self.stock_code
+            order.type = 0
+            order.price = price
+            order.volume = volume
+            order.time = datetime.datetime.now()
+
+            return order
+
+        #########################################################################################
+
+        bid = {'buy': bid_buy, 'sell': bid_sell}
 
         print("下单：" + str(marketinfo.buy) + " * ", str(volume))
 
-        c = charge[type]
+        c = bid[type]
         order = c(marketinfo.buy, volume)
         order.marketinfo = marketinfo
         key = str(order.type) + "-" + str(self.stock_code) + "-" + str(order.price)
@@ -111,9 +131,29 @@ class BaseStock():
 
     #########################################################################################
 
-    def output(self):
+    def judge(self, marketinfos):
+        marketinfo = marketinfos
+
+        key = "1" + "-" + str(self.stock_code) + "-" + str(marketinfo.buy)
+
+        order = self.bid_dict.get(key)
+
+        if (not order):
+            self.bid("buy",marketinfo, 1000)
+            print("开始下单买入：")
+        else:
+            self.bid("sell",marketinfo, 1000)
+            print("开始下单卖出：")
+
+    #########################################################################################
+
+    def run(self):
+
+        profit = self.calc_profit(3.75, 3.8, 10000)
+
         for num in range(1,100):
             stock_value = self.quotation.stocks([self.stock_code])[self.stock_code]
+
             marketinfo = marketinfos()
             marketinfo.buy = stock_value['buy']  # 竞买价
             marketinfo.sell = stock_value['sell']  # 竞卖价
@@ -130,13 +170,14 @@ class BaseStock():
 
             print("----------------------")
 
-            self.bid("buy", marketinfo, 10000)
+            # self.bid("buy", marketinfo, 10000)
+            # self.bid("sell", marketinfo, 10000)
 
-            self.bid("sell", marketinfo, 10000)
+            self.judge(marketinfo)
 
             print("----------------------")
    
-            time.sleep(50)
+            time.sleep(5)
 
 #########################################################################################
 
