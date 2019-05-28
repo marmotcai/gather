@@ -12,6 +12,7 @@ class orders:
         self.time = 0 # 委托时间
         self.volume = 0 # 委托数量
         self.marketinfo = 0 # 当前行情信息
+        self.charge = 0 # 手续费
 
 class marketinfos:
     def __init__(self):
@@ -27,12 +28,22 @@ class marketinfos:
         self.ask1 = 0  # 卖一价
         self.ask1_volume = 0  # 卖一量
 
+class Statistics:
+    def __init__(self):
+        self.floating_income = 0  # 浮动收益，代表市值和成本差
+        self.interval_income = 0  # 区间收益，代表波段操作收益
+        self.bid = {}  # 下单记录
+        self.buy_order = {}  # 买入记录
+        self.sell_order = {}  # 卖出记录
+
 class BaseStock():
+
     def __init__(self, stock_code, minimum_profit):
         self.stock_code = stock_code
         self.minimum_profit = minimum_profit
         self.quotation = easyquotation.use('sina')
-        self.bid_dict = {}
+
+        self.s = Statistics()
 
         stock_value = self.quotation.stocks([self.stock_code])[self.stock_code]
         print(str(stock_value['name']))
@@ -85,73 +96,85 @@ class BaseStock():
         charge_buy = self.calc_charge("buy", buy, volume)
         charge_sell = self.calc_charge("sell", sell, volume)
 
-        profit = round(volume * (order_sell - order_buy) * 100) / 100 - charge_buy - charge_sell
-
-        print("买入总税费：" + str(charge_buy))
-        print("卖出总税费：" + str(charge_sell))
-        print("本次利润：" + str(profit))
+        profit = volume * (order_sell - order_buy) - charge_buy - charge_sell
+        profit = round(profit * 100) / 100
+        # print("买入总税费：" + str(charge_buy))
+        # print("卖出总税费：" + str(charge_sell))
+        # print("本次利润：" + str(profit))
         return profit
 
     #########################################################################################
 
     def bid(self, type, marketinfo, volume):
         def bid_buy(price, volume):
+            print("开始下单买入,价格： ：" + str(price), " 数量: " + str(volume))
             order = orders()
             order.code = self.stock_code
             order.type = 1
             order.price = price
             order.volume = volume
             order.time = datetime.datetime.now()
+            order.charge = self.calc_charge("buy", price, volume)
+
+            key = order.price
+            self.s.buy_order[key] = order
 
             return order
 
         #########################################################################################
 
         def bid_sell(price, volume):
-            order = orders()
-            order.code = self.stock_code
-            order.type = 0
-            order.price = price
-            order.volume = volume
-            order.time = datetime.datetime.now()
+            for b in self.s.buy_order:
+                profit = self.calc_profit(b, price, volume)
+                if (profit > self.minimum_profit):
+                    print("开始下单卖出,价格： ：" + str(marketinfo.now), " 数量: " + str(volume))
+                    order = self.s.buy_order.pop(b)
+                    order.code = self.stock_code
+                    order.type = 0
+                    order.price = price
+                    order.volume = volume
+                    order.time = datetime.datetime.now()
+                    order.charge = self.calc_charge("sell", price, volume)
 
-            return order
+                    key = str(order.price)
+                    self.s.sell_order[key] = order
+
+                    self.s.interval_income = self.s.interval_income + profit
+
+                    return order
 
         #########################################################################################
 
         bid = {'buy': bid_buy, 'sell': bid_sell}
 
-        print("下单：" + str(marketinfo.buy) + " * ", str(volume))
+        print("当前价格：" + str(marketinfo.now))
 
         c = bid[type]
-        order = c(marketinfo.buy, volume)
-        order.marketinfo = marketinfo
-        key = str(order.type) + "-" + str(self.stock_code) + "-" + str(order.price)
-        self.bid_dict[key] = order
+        order = c(marketinfo.now, volume)
+        if order:
+            order.marketinfo = marketinfo
+            key = str(order.time)
+            self.s.bid[key] = order
 
     #########################################################################################
 
     def judge(self, marketinfos):
         marketinfo = marketinfos
 
-        key = "1" + "-" + str(self.stock_code) + "-" + str(marketinfo.buy)
-
-        order = self.bid_dict.get(key)
+        order = self.s.buy_order.get(marketinfo.now)
 
         if (not order):
-            self.bid("buy",marketinfo, 1000)
-            print("开始下单买入：")
-        else:
-            self.bid("sell",marketinfo, 1000)
-            print("开始下单卖出：")
+            self.bid("buy", marketinfo, 10000)
+
+        # time.sleep(1)
+        # marketinfo.now = marketinfo.now + 0.05
+
+        self.bid("sell", marketinfo, 10000)
 
     #########################################################################################
 
     def run(self):
-
-        profit = self.calc_profit(3.75, 3.8, 10000)
-
-        for num in range(1,100):
+        for num in range(1,1000):
             stock_value = self.quotation.stocks([self.stock_code])[self.stock_code]
 
             marketinfo = marketinfos()
@@ -159,10 +182,10 @@ class BaseStock():
             marketinfo.sell = stock_value['sell']  # 竞卖价
 
             marketinfo.now = stock_value['now'] # 现价
-            marketinfo.open = stock_value['now'] # 开盘价
-            marketinfo.close = stock_value['now'] # 昨日收盘价
-            marketinfo.high = stock_value['now'] # 今日最高价
-            marketinfo.low = stock_value['now'] # 今日最低价
+            marketinfo.open = stock_value['open'] # 开盘价
+            marketinfo.close = stock_value['close'] # 昨日收盘价
+            marketinfo.high = stock_value['high'] # 今日最高价
+            marketinfo.low = stock_value['low'] # 今日最低价
             marketinfo.bid1 = stock_value['bid1'] # 买一价
             marketinfo.bid1_volume = stock_value['bid1_volume'] # 买一量
             marketinfo.ask1 = stock_value['ask1'] # 卖一价
@@ -170,10 +193,28 @@ class BaseStock():
 
             print("----------------------")
 
-            # self.bid("buy", marketinfo, 10000)
-            # self.bid("sell", marketinfo, 10000)
-
             self.judge(marketinfo)
+
+            print("当前买入单: " + str(self.s.buy_order.__len__()) + " 当前卖出单: " + str(self.s.sell_order.__len__()))
+
+            position = 0
+            primecost = 0
+            buy_charge = 0
+            for b in self.s.buy_order:
+                order = self.s.buy_order.get(b)
+                primecost = primecost + (order.price * order.volume) + order.charge
+                position = position + order.volume
+                buy_charge = buy_charge + order.charge
+
+            primecost = round(primecost)
+
+            tolvalue = position * marketinfo.now
+            tolvalue = round(tolvalue)
+
+            self.s.floating_income = tolvalue - primecost
+            print("总持仓: " + str(position) + " 成本: " + str(primecost) + " 市值: " + str(tolvalue)
+                  + " 浮动盈亏: " + str(self.s.floating_income) + " 波段盈亏: "  + str(self.s.interval_income)
+                  + " 交易次数: " + str(self.s.bid.__len__()))
 
             print("----------------------")
    
@@ -182,23 +223,4 @@ class BaseStock():
 #########################################################################################
 
 if __name__ == "__main__":
-    s = BaseStock('601988', 300)
-
-
-#for i in stock_dict:
-#    value = i.get('601988'))
-#    resultData = json.loads(value)
-
-   # print((value)
-
-#print(stock_dict)
-#print(type(stock_dict))
-
-# dumps 将数据转换成字符串
-#json_str = json.dumps(stock_dict)
-#print(json_str)
-#print(type(json_str))
-
-#new_dict = json.loads(json_str)
-#print(new_dict)
-#print(type(new_dict))
+    s = BaseStock('300096', 300)
