@@ -8,8 +8,8 @@ class orders:
     def __init__(self):
         self.code = 0 # 代码
         self.type = -1 # 交易类型 0：卖出 1：买入
-        self.price = 0 # 委托价格
         self.time = 0 # 委托时间
+        self.price = 0 # 委托价格
         self.volume = 0 # 委托数量
         self.marketinfo = 0 # 当前行情信息
         self.charge = 0 # 手续费
@@ -32,6 +32,7 @@ class Statistics:
     def __init__(self):
         self.floating_income = 0  # 浮动收益，代表市值和成本差
         self.interval_income = 0  # 区间收益，代表波段操作收益
+        self.current_cost = 0 # 当前成本
         self.bid = {}  # 下单记录
         self.buy_order = {}  # 买入记录
         self.sell_order = {}  # 卖出记录
@@ -103,6 +104,17 @@ class BaseStock():
         # print("本次利润：" + str(profit))
         return profit
 
+    def calc_cost(self):
+        tolvolume = 0
+        curcost = 0
+        for b in self.s.buy_order:
+            order = self.s.buy_order.get(b)
+            if (order):
+                curcost = ((tolvolume * curcost) + (order.volume * order.price)) / (tolvolume + order.volume)
+                tolvolume = tolvolume + order.volume
+
+        return curcost
+
     #########################################################################################
 
     def bid(self, type, marketinfo, volume):
@@ -147,14 +159,15 @@ class BaseStock():
 
         bid = {'buy': bid_buy, 'sell': bid_sell}
 
-        print("当前价格：" + str(marketinfo.now))
-
         c = bid[type]
         order = c(marketinfo.now, volume)
         if order:
             order.marketinfo = marketinfo
             key = str(order.time)
             self.s.bid[key] = order
+
+        self.s.current_cost = self.calc_cost()
+        print("当前价格：" + str(marketinfo.now) + " 持仓成本: " + str(self.s.current_cost))
 
     #########################################################################################
 
@@ -195,7 +208,9 @@ class BaseStock():
 
             self.judge(marketinfo)
 
-            print("当前买入单: " + str(self.s.buy_order.__len__()) + " 当前卖出单: " + str(self.s.sell_order.__len__()))
+            print("当前买入单: " + str(self.s.buy_order.__len__()) +
+                  " 当前卖出单: " + str(self.s.sell_order.__len__()) +
+                  " 交易次数: " + str(self.s.bid.__len__()))
 
             position = 0
             primecost = 0
@@ -213,8 +228,7 @@ class BaseStock():
 
             self.s.floating_income = tolvalue - primecost
             print("总持仓: " + str(position) + " 成本: " + str(primecost) + " 市值: " + str(tolvalue)
-                  + " 浮动盈亏: " + str(self.s.floating_income) + " 波段盈亏: "  + str(self.s.interval_income)
-                  + " 交易次数: " + str(self.s.bid.__len__()))
+                  + " 浮动盈亏: " + str(self.s.floating_income) + " 波段盈亏: "  + str(self.s.interval_income))
 
             print("----------------------")
    
