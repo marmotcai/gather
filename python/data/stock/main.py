@@ -1,8 +1,10 @@
 import datetime
 
 import easyquotation
-import json
 import time
+import threading
+import http.server as hs
+import os
 
 class orders:
     def __init__(self):
@@ -30,9 +32,14 @@ class marketinfos:
 
 class Statistics:
     def __init__(self):
+        self.position = 0 # 当前总持仓
+        self.primecost = 0 # 当前总成本
+        self.tolvalue = 0 # 当前市值
         self.floating_income = 0  # 浮动收益，代表市值和成本差
         self.interval_income = 0  # 区间收益，代表波段操作收益
-        self.current_cost = 0 # 当前成本
+        self.buy_charge = 0   # 买入总税费
+        self.sell_charge = 0   # 卖出总税费
+        self.current_cost = 0 # 当前成本单价
         self.bid = {}  # 下单记录
         self.buy_order = {}  # 买入记录
         self.sell_order = {}  # 卖出记录
@@ -48,7 +55,6 @@ class BaseStock():
 
         stock_value = self.quotation.stocks([self.stock_code])[self.stock_code]
         print(str(stock_value['name']))
-        self.run()
 
     #########################################################################################
 
@@ -212,22 +218,24 @@ class BaseStock():
                   " 当前卖出单: " + str(self.s.sell_order.__len__()) +
                   " 交易次数: " + str(self.s.bid.__len__()))
 
-            position = 0
-            primecost = 0
-            buy_charge = 0
+            self.s.position = 0
+            self.s.primecost = 0
+            self.s.buy_charge = 0
             for b in self.s.buy_order:
                 order = self.s.buy_order.get(b)
-                primecost = primecost + (order.price * order.volume) + order.charge
-                position = position + order.volume
-                buy_charge = buy_charge + order.charge
+                self.s.primecost = self.s.primecost + (order.price * order.volume) + order.charge # 计算总成本
+                self.s.position = self.s.position + order.volume # 计算总持仓
+                self.s.buy_charge = self.s.buy_charge + order.charge # 计算总税费
 
-            primecost = round(primecost)
+            self.s.primecost = round(self.s.primecost)
 
-            tolvalue = position * marketinfo.now
-            tolvalue = round(tolvalue)
+            self.s.tolvalue = self.s.position * marketinfo.now
+            self.s.tolvalue = round(self.s.tolvalue)
 
-            self.s.floating_income = tolvalue - primecost
-            print("总持仓: " + str(position) + " 成本: " + str(primecost) + " 市值: " + str(tolvalue)
+            self.s.floating_income = self.s.tolvalue - self.s.primecost
+
+            print("总持仓: " + str(self.s.position) + " 成本: " + str(self.s.primecost) + " 市值: " + str(self.s.tolvalue)
+                  + " 买入总税费: " + str(self.s.buy_charge)
                   + " 浮动盈亏: " + str(self.s.floating_income) + " 波段盈亏: "  + str(self.s.interval_income))
 
             print("----------------------")
@@ -236,5 +244,102 @@ class BaseStock():
 
 #########################################################################################
 
-if __name__ == "__main__":
-    s = BaseStock('300096', 300)
+class ServerException(Exception):
+    '''服务器内部错误'''
+    pass
+
+class RequestHandler(hs.BaseHTTPRequestHandler):
+
+    def send_content(self, page, status=200):
+
+        self.send_response(status)
+        self.send_header("Content-type", "text/html")
+        self.send_header("Content-Length", str(len(page)))
+        self.end_headers()
+        self.wfile.write(bytes(page, encoding='utf-8'))
+        # print(page)
+
+    def do_GET(self):
+
+        # 这里要处理两个异常，一个是读入路径时可能出现的异常，一个是读入路径后若不是文件，要作为异常处理
+        try:
+            if self.path == "/s":
+                content_str = "总持仓: " + str(stock_obj.s.position) + " 成本: " + str(stock_obj.s.primecost) + \
+                              " 市值: " + str(stock_obj.s.tolvalue) + " 买入总税费: " + str(stock_obj.s.buy_charge) + \
+                              " 浮动盈亏: " + str(stock_obj.s.floating_income) + " 波段盈亏: "  + str(stock_obj.s.interval_income)
+
+                self.send_content(content_str, 200)
+            else:
+                # 获取文件路径
+                full_path = os.getcwd() + self.path
+
+                # 如果路径不存在
+                if not os.path.exists(full_path):
+
+                    raise ServerException("'{0}' not found".format(self.path))
+
+                # 如果该路径是一个文件
+                elif os.path.isfile(full_path):
+
+                    self.handle_file(full_path)
+
+                # 如果该路径不是一个文件
+                else:
+
+                    raise ServerException("Unknown object '{0}'".format(self.path))
+
+        except Exception as msg:
+
+            self.handle_error(msg)
+
+    def handle_file(self, full_path):
+
+        try:
+
+            with open(full_path, 'r') as file:
+
+                content = file.read()
+
+            self.send_content(content, 200)
+
+        except IOError as msg:
+
+            msg = "'{0}' cannot be read: {1}".format(self.path, msg)
+
+            self.handle_error(msg)
+
+    Error_Page = """\
+    <html>
+    <body>
+    <h1>Error accessing {path}</h1>
+    <p>{msg}</p>
+    </body>
+    </html>
+    """
+
+    def handle_error(self, msg):
+
+        content = self.Error_Page.format(path=self.path, msg=msg)
+
+        self.send_content(content, 404)
+
+#########################################################################################
+
+def run():
+    stock_obj.run()
+
+if __name__ == '__main__':
+    stock_obj = BaseStock('300096', 300)
+
+    s = threading.Thread(target=run, name='main.run')
+    s.start()
+
+    httpAddress = ('', 8030)
+
+    httpd = hs.HTTPServer(httpAddress, RequestHandler)
+
+    httpd.serve_forever()
+
+
+
+
