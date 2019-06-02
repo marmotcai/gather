@@ -1,3 +1,5 @@
+#coding=utf-8
+
 import datetime
 
 import easyquotation
@@ -5,6 +7,8 @@ import time
 import threading
 import http.server as hs
 import os
+import re	#引入正则表达式对象
+import urllib	#用于对URL进行编解码
 
 class orders:
     def __init__(self):
@@ -260,67 +264,47 @@ class RequestHandler(hs.BaseHTTPRequestHandler):
         # print(page)
 
     def do_GET(self):
+        content_str = '''<!DOCTYPE HTML>
+                        <html>
+                        <head><title>Get page</title></head>
+                        <body>
+                        "总持仓: " + str(stock_obj.s.position) + " 成本: " + str(stock_obj.s.primecost) + \
+                        " 市值: " + str(stock_obj.s.tolvalue) + " 买入总税费: " + str(stock_obj.s.buy_charge) + \
+                        " 浮动盈亏: " + str(stock_obj.s.floating_income) + " 波段盈亏: " + str(stock_obj.s.interval_income)
 
-        # 这里要处理两个异常，一个是读入路径时可能出现的异常，一个是读入路径后若不是文件，要作为异常处理
-        try:
-            if self.path == "/s":
-                content_str = "总持仓: " + str(stock_obj.s.position) + " 成本: " + str(stock_obj.s.primecost) + \
-                              " 市值: " + str(stock_obj.s.tolvalue) + " 买入总税费: " + str(stock_obj.s.buy_charge) + \
-                              " 浮动盈亏: " + str(stock_obj.s.floating_income) + " 波段盈亏: "  + str(stock_obj.s.interval_income)
+                        </body>
+                        </html>'''
+        self.send_response(200)
+        self.send_header("Content-type", "text/html")
+        self.send_header("test", "This is test!")
+        self.end_headers()
+        buf = '''<!DOCTYPE HTML>
+                        <html>
+                        <head><title>Get page</title></head>
+                        <body>
 
-                self.send_content(content_str, 200)
-            else:
-                # 获取文件路径
-                full_path = os.getcwd() + self.path
+                        <form action="post_page" method="post">
+                          username: <input type="text" name="username" /><br />
+                          password: <input type="text" name="password" /><br />
+                          <input type="submit" value="POST" />
+                        </form>
 
-                # 如果路径不存在
-                if not os.path.exists(full_path):
+                        </body>
+                        </html>'''
+        self.wfile.write(content_str.encode('utf-8'))
 
-                    raise ServerException("'{0}' not found".format(self.path))
 
-                # 如果该路径是一个文件
-                elif os.path.isfile(full_path):
-
-                    self.handle_file(full_path)
-
-                # 如果该路径不是一个文件
-                else:
-
-                    raise ServerException("Unknown object '{0}'".format(self.path))
-
-        except Exception as msg:
-
-            self.handle_error(msg)
-
-    def handle_file(self, full_path):
-
-        try:
-
-            with open(full_path, 'r') as file:
-
-                content = file.read()
-
-            self.send_content(content, 200)
-
-        except IOError as msg:
-
-            msg = "'{0}' cannot be read: {1}".format(self.path, msg)
-
-            self.handle_error(msg)
-
-    Error_Page = """\
-    <html>
-    <body>
-    <h1>Error accessing {path}</h1>
-    <p>{msg}</p>
-    </body>
-    </html>
-    """
+    Error_Page = """ \
+<html>
+<body>
+<h1>Error accessing {path}</h1>
+<p>{msg}</p>
+</body>
+</html>
+"""
 
     def handle_error(self, msg):
-
         content = self.Error_Page.format(path=self.path, msg=msg)
-
         self.send_content(content, 404)
 
 #########################################################################################
