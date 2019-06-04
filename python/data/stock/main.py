@@ -2,6 +2,7 @@
 
 import stockinfo
 import stock
+import server
 import threading
 import http.server as hs
 
@@ -77,13 +78,17 @@ if __name__ == '__main__':
 
     startinfo.set_stock_code('300096') # 股票代码
     startinfo.set_minimum_profit(100) # 单次交易最小盈利
-    startinfo.set_minimum_volume(1000) # 单次交易数量
-    startinfo.set_maximum_capital(100000) # 资金总额
+    startinfo.set_minimum_volume(10000) # 单次交易数量
+    startinfo.set_maximum_capital(1000000) # 资金总额
+    startinfo.set_old_position(50000) # 存量老股，用于T+0
 
     stock_obj = stock.BaseStock(startinfo)
 
-    s = threading.Thread(target=run, name='main.run')
-    s.start()
+    threading.Thread(target=run, name='main.run').start()
+    # stock_obj.run()
+
+    server_obj = server.BaseServer(stock_obj)
+    server_obj.run()
 
     # httpAddress = ('', 8030)
     # httpd = hs.HTTPServer(httpAddress, RequestHandler)

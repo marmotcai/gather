@@ -4,22 +4,26 @@ class startinfos: # 启动信息
         self.stock_code = 0 # 股票代码
         self.minimum_profit = 300 # 单次交易最小盈利值
         self.minimum_volume = 1000 # 单次交易数量
-        self.maximum_capital = self.minimum_volume * 10 # 动用最大资金
+        self.maximum_capital = 1000000 # 动用最大资金
+        self.old_position = 50000 # 存量老股，用于T+0
+        self.premium_space = round(self.minimum_profit / self.minimum_volume, 2)
 
     def set_stock_code(self, stock_code):
         self.stock_code = stock_code
 
     def set_minimum_profit(self, profit):
         self.minimum_profit = profit
+        self.premium_space = round(self.minimum_profit / self.minimum_volume, 2)
 
     def set_minimum_volume(self, volume):
         self.minimum_volume = volume
-        # self.maximum_capital = self.minimum_volume * 10
+        self.premium_space = round(self.minimum_profit / self.minimum_volume, 2)
 
     def set_maximum_capital(self, capital):
         self.maximum_capital = capital
-        # self.minimum_volume = self.maximum_capital / 10
 
+    def set_old_position(self, old_position):
+        self.old_position = old_position
 
 class orders: # 交易信息
     def __init__(self):
@@ -48,6 +52,7 @@ class marketinfos: # 行情信息
 class statistics: # 当前状态信息
     def __init__(self):
         self.startinfo = startinfos() # 启动信息
+        self.marketinfo = marketinfos() # 最新行情信息
         self.position = 0 # 当前总持仓
         self.primecost = 0 # 当前总成本
         self.tolvalue = 0 # 当前市值
@@ -67,25 +72,24 @@ class statistics: # 当前状态信息
 
 class calc:  # 计算工具类
 
-    def __init__(self, stock_code):
-        self.stock_code = stock_code # 股票代码
+    def __init__(self, statistics):
+        self.s = statistics # 当前状态信息
 
     #########################################################################################
 
-    def calc_cost(self, type, cur_cost, cur_volume, price, volume):
+    def calc_cost(self, type, price, volume):
         charge = self.calc_charge(type, price, volume)
-        primecost = (cur_cost * cur_volume) + (price * volume) + charge # 总成本
+        primecost = (self.s.current_cost * self.s.position) + (price * volume) + charge # 总成本
 
-        return round(primecost / (cur_volume + volume), 3)
+        return round(primecost / (self.s.position + volume), 3)
 
     def calc_profit(self, buy, sell, volume): # 计算区间收益
         charge_buy = self.calc_charge("buy", buy, volume)
         charge_sell = self.calc_charge("sell", sell, volume)
 
         profit = volume * (sell - buy) - charge_buy - charge_sell
-        profit = round(profit, 2)
 
-        return profit
+        return round(profit, 2)
 
     def calc_charge(self, type, price, volume): # 计算费率
 
@@ -95,13 +99,13 @@ class calc:  # 计算工具类
             if (commission < 5): commission = 5
 
             transfer = 0
-            if (int(self.stock_code) >= 600000):
+            if (int(self.s.startinfo.stock_code) >= 600000):
                 transfer = round(volume * 0.06) / 100  # 过户费
 
             stamp = 0
             total_charge = round((commission + transfer + stamp) * 100) / 100
 
-            return round(total_charge, 2)
+            return total_charge
 
         #########################################################################################
 
@@ -111,19 +115,20 @@ class calc:  # 计算工具类
             if (commission < 5): commission = 5
 
             transfer = 0
-            if (int(self.stock_code) >= 600000):  # 只有沪市收取
+            if (int(self.s.startinfo.stock_code) >= 600000):  # 只有沪市收取
                 transfer = round(volume * 0.06) / 100  # 过户费
 
             stamp = round(total_sum * 0.1) / 100  # 印花税
 
             total_charge = round((commission + transfer + stamp) * 100) / 100
 
-            return round(total_charge, 2)
+            return total_charge
 
         charge = {'buy': charge_buy,
                   'sell': charge_sell}
 
         c = charge[type]
-        return c(price, volume)
+
+        return round(c(price, volume), 2)
 
     #########################################################################################
