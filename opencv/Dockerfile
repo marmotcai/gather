@@ -55,6 +55,6 @@ RUN ./bootstrap && \
     make install && \
     ln -s  /usr/local/crosstool-ng/bin/ct-ng /usr/local/bin/ct-ng
 
-RUN wget https://raw.githubusercontent.com/marmotcai/gather/master/opencv/crosstool-ng.config .config
+RUN wget -O ${CROSSTOOL_SRC_PATH}/.config https://raw.githubusercontent.com/marmotcai/gather/master/opencv/crosstool-ng.config
 RUN ct-ng build
 
