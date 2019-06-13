@@ -58,3 +58,4 @@ RUN ./bootstrap && \
 RUN wget -O ${CROSSTOOL_SRC_PATH}/.config https://raw.githubusercontent.com/marmotcai/gather/master/opencv/crosstool-ng.config
 RUN ct-ng build
 
+CMD /usr/sbin/sshd -D

@@ -84,6 +84,13 @@ case $cmd in
                    jpillora/dnsmasq
       fi
 
+      if [[ $param =~ 'crosstools' ]]; then
+        docker run -d \
+                   --name my-crosstools \
+                   -v $PWD/data/crosstools:/root/data \
+                   marmotcai/opencv-cross 
+      fi
+
       exit 0
     ;;
 
@@ -106,6 +113,7 @@ esac
     echo "use: sh build.sh run nginx"
     echo "use: sh build.sh run jumpserver"
     echo "use: sh build.sh run dnsmasq"
+    echo "use: sh build.sh run crosstools"
     echo "---"
     echo "use: sh build.sh test imagesname"
 
