@@ -17,7 +17,7 @@ help:
 		echo "         make build-image name=golang-builder tag=golang-builder image=marmotcai/golang-builder"
 		echo "         make build-image name=go-mediainfo tag=go-mediainfo image=marmotcai/go-mediainfo"
 		echo "         make build-image name=python tag=python-builder image=marmotcai/python-builder"
-		echo "         make build-image name=opencv tag=DEV image=marmotcai/dev"
+		echo "         make build-image name=opencv tag=SDE image=marmotcai/sde"
 		echo "         make build-image name=opencv tag=opencv-base image=marmotcai/opencv"
 		echo "         make build-image name=s3cmd tag=s3cmd image=marmotcai/s3cmd"
 		echo "         make build-image name=mysql tag=mysql image=marmotcai/mysql"
