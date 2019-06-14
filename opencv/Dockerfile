@@ -59,6 +59,11 @@ RUN ct-ng list-samples && \
     cd ${CROSSTOOL_SRC_PATH} && \
     ct-ng arm-unknown-linux-gnueabi
 # RUN wget -O ${CROSSTOOL_SRC_PATH}/.config https://raw.githubusercontent.com/marmotcai/gather/master/opencv/crosstool-ng.config
+
+RUN sed -i 's/# CT_EXPERIMENTAL is not set/CT_EXPERIMENTAL=y/g' .config
+RUN sed -i '/CT_EXPERIMENTAL=y/a\CT_ALLOW_BUILD_AS_ROOT_SURE=y' .config
+RUN sed -i '/CT_EXPERIMENTAL=y/a\CT_ALLOW_BUILD_AS_ROOT=y' .config
+
 RUN ct-ng build
 
 CMD /usr/sbin/sshd -D
