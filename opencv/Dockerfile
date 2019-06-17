@@ -74,7 +74,7 @@ RUN tar -zxvf ${WORK_DIR}/opencv_contrib.tar.gz -C ${OPENCV_DIR} && \
 
 
 RUN mkdir -p ${OPENCV_DIR}/build && \
-    cmake -DOPENCV_EXTRA_MODULES_PATH=${OPENCV_DIR}/opencv_contrib-4.1.0/modules ${OPENCV_DIR}/opencv-4.1.0/ -B ${OPENCV_DIR}/build
+    cmake -DOPENCV_EXTRA_MODULES_PATH=${OPENCV_DIR}/opencv_contrib-4.1.0/modules ${OPENCV_DIR}/opencv-4.1.0/ -B ${OPENCV_DIR}/build -D CMAKE_TOOLCHAIN_FILE=${OPENCV_DIR}/arm_cross_toolchain.cmake
 
 WORKDIR ${WORK_DIR}
 
