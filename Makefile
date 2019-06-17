@@ -18,7 +18,7 @@ help:
 		echo "         make build-image name=go-mediainfo tag=go-mediainfo image=marmotcai/go-mediainfo"
 		echo "         make build-image name=python tag=python-builder image=marmotcai/python-builder"
 		echo "         make build-image name=opencv tag=SDE image=marmotcai/crosstool-sde"
-		echo "         make build-image name=opencv tag=opencv-base image=marmotcai/opencv"
+		echo "         make build-image name=opencv tag=opencv-base image=crosstool-opencv"
 		echo "         make build-image name=s3cmd tag=s3cmd image=marmotcai/s3cmd"
 		echo "         make build-image name=mysql tag=mysql image=marmotcai/mysql"
 		echo "         make build-image name=redis tag=redis image=marmotcai/redis"
@@ -105,6 +105,8 @@ test:
 	
 	echo 'test image ('$(image)')'
 
+	docker run --rm -ti $(image) /bin/bash
+	
 	if [ "$(image)" = "marmotcai/ceph-deploy" ]; \
 		then docker run --rm -ti -v $(shell pwd)/ceph/script:/root/script $(image) /bin/bash; exit 0; fi
 	        
@@ -132,7 +134,6 @@ test:
 		then docker run --rm -ti -v $(shell pwd)/python/data:/root/output $(image) /bin/bash ; \
 	exit 0; fi
 
-	docker run --rm -ti $(image) /bin/bash
 
 
 .PHONY: help build-image image test push
