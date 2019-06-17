@@ -39,10 +39,10 @@ RUN ./bootstrap && \
 
 RUN ct-ng list-samples && \
     cd ${CROSSTOOL_SRC_PATH} && \
-    ct-ng x86_64-centos7-linux-gnu
     ct-ng armv8-rpi3-linux-gnueabihf
 #     ct-ng armv6-rpi-linux-gnueabi
 #     ct-ng arm-unknown-linux-gnueabi
+#     ct-ng x86_64-centos7-linux-gnu
 # RUN wget -O ${CROSSTOOL_SRC_PATH}/.config https://raw.githubusercontent.com/marmotcai/gather/master/opencv/crosstool-ng.config
 
 RUN sed -i 's/# CT_EXPERIMENTAL is not set/CT_EXPERIMENTAL=y/g' .config
