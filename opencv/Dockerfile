@@ -36,8 +36,8 @@ RUN ./bootstrap && \
     make install && \
     ln -s  /usr/local/crosstool-ng/bin/ct-ng /usr/local/bin/ct-ng
 
-ENV CROSSTOOL_PREFIX "armv6-rpi-linux-gnueabi"
-
+# ENV CROSSTOOL_PREFIX "armv6-rpi-linux-gnueabi"
+ENV CROSSTOOL_PREFIX "x86_64-ubuntu16.04-linux-gnu"
 RUN ct-ng list-samples && \
     cd ${CROSSTOOL_SRC_PATH} && \
     ct-ng ${CROSSTOOL_PREFIX}
