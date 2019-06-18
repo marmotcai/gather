@@ -17,8 +17,8 @@ help:
 		echo "         make build-image name=golang-builder tag=golang-builder image=marmotcai/golang-builder"
 		echo "         make build-image name=go-mediainfo tag=go-mediainfo image=marmotcai/go-mediainfo"
 		echo "         make build-image name=python tag=python-builder image=marmotcai/python-builder"
-		echo "         make build-image name=opencv tag=SDE image=marmotcai/crosstool-sde"
-		echo "         make build-image name=opencv tag=opencv-base image=crosstool-opencv"
+		echo "         make build-image name=crosstool tag=crosstool image=marmotcai/crosstool"
+		echo "         make build-image name=opencv tag=opencv image=marmotcai/opencv"
 		echo "         make build-image name=s3cmd tag=s3cmd image=marmotcai/s3cmd"
 		echo "         make build-image name=mysql tag=mysql image=marmotcai/mysql"
 		echo "         make build-image name=redis tag=redis image=marmotcai/redis"
@@ -76,6 +76,9 @@ build-image:
 	if [ "$(name)" = "python" ]; \
 		then DOCKERFILE_PATH="./python/Dockerfile" make image; fi
 
+	if [ "$(name)" = "crosstool" ]; \
+		then DOCKERFILE_PATH="./crosstool/Dockerfile" make image; fi
+	
 	if [ "$(name)" = "opencv" ]; \
 		then DOCKERFILE_PATH="./opencv/Dockerfile" make image; fi
 
