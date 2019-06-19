@@ -2,7 +2,7 @@ FROM marmotcai/crosstool AS opencv
 
 MAINTAINER marmotcai "marmotcai@163.com"
 
-ARG CROSSTOOL_PREFIX="armv6-rpi-linux-gnueabi"
+ARG CROSSTOOL_PREFIX="armv7-rpi2-linux-gnueabihf"
 
 ENV WORK_DIR /root
 
