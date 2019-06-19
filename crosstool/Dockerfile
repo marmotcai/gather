@@ -1,6 +1,6 @@
 FROM marmotcai/ubuntu-base AS crosstool
 
-ARG CROSSTOOL_PREFIX="armv6-rpi-linux-gnueabi"
+ARG CROSSTOOL_PREFIX="armv7-rpi2-linux-gnueabihf"
 
 MAINTAINER marmotcai "marmotcai@163.com"
 
@@ -12,7 +12,11 @@ ENV WORK_DIR /root
 
 RUN apt update -y && apt upgrade -y
 
-RUN apt install -y binutils unzip bison flex patch texinfo autoconf automake make gcc g++ m4 bzip2 libncurses5-dev libtool libtool-bin gperf help2man gawk xz-utils
+RUN apt install -y binutils unzip bison flex patch texinfo autoconf automake make gcc g++ m4 bzip2 libncurses5-dev libtool libtool-bin gperf help2man gawk xz-utils python3.5 python3.5-dev
+
+RUN # rm /usr/bin/python
+RUN ln -s /usr/bin/python3.5 /usr/bin/python
+RUN python --version
 
 ###############################################################
 
