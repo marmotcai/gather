@@ -1,6 +1,6 @@
 FROM marmotcai/ubuntu-base AS crosstool
 
-ARG CROSSTOOL_PREFIX="armv7-rpi2-linux-gnueabihf"
+ARG CROSSTOOL_PREFIX="arm-unknown-linux-gnueabi"
 
 MAINTAINER marmotcai "marmotcai@163.com"
 
