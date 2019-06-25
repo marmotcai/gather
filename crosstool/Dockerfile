@@ -1,6 +1,6 @@
 FROM marmotcai/ubuntu-base AS crosstool
 
-ARG CROSSTOOL_PREFIX="arm-unknown-linux-gnueabi"
+ARG CROSSTOOL_PREFIX="arm-unknown-linux-uclibcgnueabi"
 
 MAINTAINER marmotcai "marmotcai@163.com"
 
@@ -35,7 +35,7 @@ RUN ./bootstrap && \
     make install && \
     ln -s  /usr/local/crosstool-ng/bin/ct-ng /usr/local/bin/ct-ng
 
-# ENV CROSSTOOL_PREFIX "armv6-rpi-linux-gnueabi"
+# ENV CROSSTOOL_PREFIX "arm-unknown-linux-uclibcgnueabi"
 
 RUN ct-ng list-samples && \
     cd ${CROSSTOOL_SRC_PATH} && \
