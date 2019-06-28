@@ -108,7 +108,6 @@ test:
 	
 	echo 'test image ('$(image)')'
 
-	docker run --rm -ti $(image) /bin/bash
 	
 	if [ "$(image)" = "marmotcai/ceph-deploy" ]; \
 		then docker run --rm -ti -v $(shell pwd)/ceph/script:/root/script $(image) /bin/bash; exit 0; fi
@@ -137,6 +136,11 @@ test:
 		then docker run --rm -ti -v $(shell pwd)/python/data:/root/output $(image) /bin/bash ; \
 	exit 0; fi
 
+	if [ "$(image)" = "marmotcai/opencv" ]; \
+		then docker run -ti -v $(shell pwd)/opencv/data/:/root/output $(image) /bin/bash ; \
+	exit 0; fi
+
+	docker run --rm -ti $(image) /bin/bash
 
 
 .PHONY: help build-image image test push

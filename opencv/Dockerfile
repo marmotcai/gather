@@ -81,7 +81,10 @@ RUN echo ${CROSSTOOL_PREFIX}
 RUN wget -O ${CROSSTOOL_SRC_PATH}/cross_toolchain.cmake https://raw.githubusercontent.com/marmotcai/gather/master/opencv/cross_toolchain.cmake
 RUN sed -i '1 i\set(PREFIX '"${CROSSTOOL_PREFIX}"')' ${CROSSTOOL_SRC_PATH}/cross_toolchain.cmake
 
-WORKDIR ${OPENCV_DIR}/build
+WORKDIR ${WORK_DIR}/output
+RUN ln -s ${OPENCV2_DIR} .
+RUN ln -s ${OPENCV3_DIR} .
+RUN ln -s ${OPENCV4_DIR} .
 
 #RUN mkdir -p ${OPENCV_DIR}/build && \
 #    cmake -DOPENCV_EXTRA_MODULES_PATH=${OPENCV_DIR}/opencv_contrib-4.1.0/modules ${OPENCV_DIR}/opencv-4.1.0/ -B ${OPENCV_DIR}/build \
