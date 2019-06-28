@@ -27,6 +27,10 @@ RUN mkdir -p ${OPENCV2_DIR}
 
 RUN tar -zxvf ${WORK_DIR}/opencv.tar.gz -C ${OPENCV2_DIR} && \
     rm -f ${WORK_DIR}/opencv.tar.gz
+
+RUN mkdir -p ${OPENCV2_DIR}/build/ && \
+    cmake ${OPENCV2_DIR}/opencv-2.4.13.6/ -B ${OPENCV2_DIR}/build/ -DOPENCV_EXTRA_MODULES_PATH=${OPENCV2_DIR}/opencv_contrib-3.4.6/modules/ -DBUILD_EXAMPLES=ON
+    
     
 ###############################################################
 
@@ -46,6 +50,9 @@ RUN tar -zxvf ${WORK_DIR}/opencv.tar.gz -C ${OPENCV3_DIR} && \
 RUN tar -zxvf ${WORK_DIR}/opencv_contrib.tar.gz -C ${OPENCV3_DIR} && \
     rm -f ${WORK_DIR}/opencv_contrib.tar.gz
 
+RUN mkdir -p ${OPENCV3_DIR}/build/ && \
+    cmake ${OPENCV3_DIR}/opencv-3.4.6/ -B ${OPENCV3_DIR}/build/ -DOPENCV_EXTRA_MODULES_PATH=${OPENCV3_DIR}/opencv_contrib-3.4.6/modules/ -DBUILD_EXAMPLES=ON
+
 ###############################################################
 
 ENV OPENCV4_URL "https://github.com/opencv/opencv/archive/4.1.0.tar.gz"
@@ -63,6 +70,9 @@ RUN tar -zxvf ${WORK_DIR}/opencv.tar.gz -C ${OPENCV4_DIR} && \
     
 RUN tar -zxvf ${WORK_DIR}/opencv_contrib.tar.gz -C ${OPENCV4_DIR} && \
     rm -f ${WORK_DIR}/opencv_contrib.tar.gz
+
+RUN mkdir -p ${OPENCV4_DIR}/build/ && \
+    cmake ${OPENCV4_DIR}/opencv-4.1.0/ -B ${OPENCV4_DIR}/build/ -DOPENCV_EXTRA_MODULES_PATH=${OPENCV4_DIR}/opencv_contrib-4.1.0/modules/ -DBUILD_EXAMPLES=ON
 
 ###############################################################
 
