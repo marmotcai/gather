@@ -1,6 +1,6 @@
 FROM marmotcai/ubuntu-base AS crosstool
 
-ARG CROSSTOOL_PREFIX="arm-unknown-linux-gnueabi"
+ARG CROSSTOOL_PREFIX="arm-unknown-linux-uclibcgnueabi"
 
 MAINTAINER marmotcai "marmotcai@163.com"
 
@@ -35,7 +35,7 @@ RUN ./bootstrap && \
     make install && \
     ln -s  /usr/local/crosstool-ng/bin/ct-ng /usr/local/bin/ct-ng
 
-# ENV CROSSTOOL_PREFIX "armv6-rpi-linux-gnueabi"
+# ENV CROSSTOOL_PREFIX "arm-unknown-linux-uclibcgnueabi"
 
 RUN ct-ng list-samples && \
     cd ${CROSSTOOL_SRC_PATH} && \
@@ -45,6 +45,6 @@ RUN sed -i 's/# CT_EXPERIMENTAL is not set/CT_EXPERIMENTAL=y/g' .config
 RUN sed -i '/CT_EXPERIMENTAL=y/a\CT_ALLOW_BUILD_AS_ROOT_SURE=y' .config
 RUN sed -i '/CT_EXPERIMENTAL=y/a\CT_ALLOW_BUILD_AS_ROOT=y' .config
 
-RUN ct-ng build
+# RUN ct-ng build
 
 ###############################################################

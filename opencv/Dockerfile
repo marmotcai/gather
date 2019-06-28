@@ -2,7 +2,7 @@ FROM marmotcai/crosstool AS opencv
 
 MAINTAINER marmotcai "marmotcai@163.com"
 
-ARG CROSSTOOL_PREFIX="armv7-rpi2-linux-gnueabihf"
+ARG CROSSTOOL_PREFIX="arm-unknown-linux-uclibcgnueabi"
 
 ENV WORK_DIR /root
 
@@ -38,12 +38,14 @@ RUN echo ${CROSSTOOL_PREFIX}
 RUN wget -O ${CROSSTOOL_SRC_PATH}/cross_toolchain.cmake https://raw.githubusercontent.com/marmotcai/gather/master/opencv/cross_toolchain.cmake
 RUN sed -i '1 i\set(PREFIX '"${CROSSTOOL_PREFIX}"')' ${CROSSTOOL_SRC_PATH}/cross_toolchain.cmake
 
-RUN mkdir -p ${OPENCV_DIR}/build && \
-     cmake ${OPENCV_DIR}/opencv-4.1.0/ -B ${OPENCV_DIR}/build -D CMAKE_TOOLCHAIN_FILE=${CROSSTOOL_SRC_PATH}/cross_toolchain.cmake
-#    cmake -DOPENCV_EXTRA_MODULES_PATH=${OPENCV_DIR}/opencv_contrib-4.1.0/modules ${OPENCV_DIR}/opencv-4.1.0/ -B ${OPENCV_DIR}/build -D CMAKE_TOOLCHAIN_FILE=${CROSSTOOL_SRC_PATH}/cross_toolchain.cmake
-
 WORKDIR ${OPENCV_DIR}/build
 
-RUN make && make install
+RUN mkdir -p ${OPENCV_DIR}/build && \
+    cmake -DOPENCV_EXTRA_MODULES_PATH=${OPENCV_DIR}/opencv_contrib-4.1.0/modules ${OPENCV_DIR}/opencv-4.1.0/ -B ${OPENCV_DIR}/build \
+    -DCMAKE_TOOLCHAIN_FILE=${CROSSTOOL_SRC_PATH}/cross_toolchain.cmake -DBUILD_EXAMPLES=ON
+# -DCMAKE_BUILD_TYPE=RELEASE -DBUILD_SHARED_LIBS=OFF -DBUILD_SHARED_LIBS=NO
+#   cmake ${OPENCV_DIR}/opencv-4.1.0/ -B ${OPENCV_DIR}/build -D CMAKE_TOOLCHAIN_FILE=${CROSSTOOL_SRC_PATH}/cross_toolchain.cmake -DCMAKE_OSX_ARCHITECTURES=x86_64
+
+# RUN make -j5 && make install
 
 # CMD /usr/sbin/sshd -D
