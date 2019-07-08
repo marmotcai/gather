@@ -20,6 +20,7 @@ RUN make && make install
 WORKDIR ${NGINX_INSTALLPATH}
 
 RUN sed -i '1 a\user root;' ./conf/nginx.conf && \
+    sed -i 's/root   html/root   \/data\/html/g' ./conf/nginx.conf && \
     sed -i '$i include /data/vhost/*.conf;' ./conf/nginx.conf
 
 RUN rm -rf ${NGINX_DIR}/${NGINX_NAME}

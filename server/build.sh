@@ -49,7 +49,8 @@ case $cmd in
       fi;
 
       if [[ $param =~ 'nginx' ]]; then
-        docker run -p 80:80 --name my-webserver -v $PWD/data/nginx:/data -d marmotcai/nginx
+        docker rm -f my-nginx
+        docker run -p 80:80 --name my-nginx -v $PWD/data/nginx:/data -d marmotcai/nginx
       fi
 
       if [[ $param =~ 'jumpserver' ]]; then
