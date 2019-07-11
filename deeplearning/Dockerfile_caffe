@@ -1,0 +1,78 @@
+FROM marmotcai/ubuntu-base AS caffe
+
+MAINTAINER marmotcai "marmotcai@163.com"
+
+###############################################################
+
+#ENV WORK_DIR /root
+
+#RUN apt update -y && apt upgrade -y
+
+#ENV CAFFE_URL "https://github.com/BVLC/caffe/archive/1.0.tar.gz"
+#ENV CAFFE_SRC_PATH ${WORK_DIR}/caffe
+
+#RUN wget -O ${WORK_DIR}/caffe.tar.gz ${CAFFE_URL} && \
+#    tar -zxvf ${WORK_DIR}/caffe.tar.gz -C ${WORK_DIR} && \
+#    mv ${WORK_DIR}/caffe-1.0 ${CAFFE_SRC_PATH} && \
+#    rm -f ${WORK_DIR}/caffe.tar.gz
+
+#WORKDIR ${CAFFE_SRC_PATH}
+
+#RUN cp Makefile.config.example Makefile.config
+#RUN sed -i 's/# CPU_ONLY := 1/CPU_ONLY := 1/g' Makefile.config
+
+
+###############################################################
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        build-essential \
+        cmake \
+        git \
+        wget \
+        libatlas-base-dev \
+        libboost-all-dev \
+        libgflags-dev \
+        libgoogle-glog-dev \
+        libhdf5-serial-dev \
+        libleveldb-dev \
+        liblmdb-dev \
+        libopencv-dev \
+        libprotobuf-dev \
+        libsnappy-dev \
+        protobuf-compiler \
+        python-dev \
+        python-numpy \
+        python-pip \
+        python-setuptools \
+        python-scipy && \
+    rm -rf /var/lib/apt/lists/*
+
+ENV WORK_DIR /root
+ENV CAFFE_ROOT ${WORK_DIR}/caffe
+ENV CAFFE_URL "https://github.com/BVLC/caffe/archive/1.0.tar.gz"
+
+RUN wget -O ${WORK_DIR}/caffe.tar.gz ${CAFFE_URL} && \
+    tar -zxvf ${WORK_DIR}/caffe.tar.gz -C ${WORK_DIR} && \
+    mv ${WORK_DIR}/caffe-1.0 ${CAFFE_ROOT} && \
+    rm -f ${WORK_DIR}/caffe.tar.gz
+
+WORKDIR ${CAFFE_ROOT}
+
+# RUN mkdir ~/.pip && touch ~/.pip/pip.conf && \
+#    echo "[global]" >> ~/.pip/pip.conf && \
+#    echo "index-url = https://pypi.tuna.tsinghua.edu.cn/simple" >> ~/.pip/pip.conf
+
+RUN pip install --upgrade pip && \
+    cd python && for req in $(cat requirements.txt) pydot; do pip install $req; done && cd .. && \
+    mkdir build && cd build && \
+    cmake -DCPU_ONLY=1 .. && \
+    make -j"$(nproc)"
+
+ENV PYCAFFE_ROOT $CAFFE_ROOT/python
+ENV PYTHONPATH $PYCAFFE_ROOT:$PYTHONPATH
+ENV PATH $CAFFE_ROOT/build/tools:$PYCAFFE_ROOT:$PATH
+RUN echo "$CAFFE_ROOT/build/lib" >> /etc/ld.so.conf.d/caffe.conf && ldconfig
+
+WORKDIR /workspace
+
+###############################################################
