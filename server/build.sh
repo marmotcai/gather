@@ -92,6 +92,10 @@ case $cmd in
                    marmotcai/opencv-cross 
       fi
 
+      if [[ $param =~ 'tensorflow' ]]; then
+	docker run --name my-tensorflow -it -d -p 8888:8888 -v $PWD/data/tensorflow:/root/data tensorflow/tensorflow
+      fi
+
       exit 0
     ;;
 
@@ -115,6 +119,7 @@ esac
     echo "use: sh build.sh run jumpserver"
     echo "use: sh build.sh run dnsmasq"
     echo "use: sh build.sh run crosstools"
+    echo "use: sh build.sh run tensorflow"
     echo "---"
     echo "use: sh build.sh test imagesname"
 
