@@ -20,6 +20,7 @@ help:
 		echo "         make build-image name=crosstool tag=crosstool image=marmotcai/crosstool"
 		echo "         make build-image name=opencv tag=opencv image=marmotcai/opencv"
 		echo "         make build-image name=caffe tag=caffe image=marmotcai/caffe"
+		echo "         make build-image name=tensorflow tag=tensorflow image=marmotcai/tensorflow"
 		echo "         make build-image name=s3cmd tag=s3cmd image=marmotcai/s3cmd"
 		echo "         make build-image name=mysql tag=mysql image=marmotcai/mysql"
 		echo "         make build-image name=redis tag=redis image=marmotcai/redis"
@@ -86,6 +87,9 @@ build-image:
 	if [ "$(name)" = "caffe" ]; \
 		then DOCKERFILE_PATH="./deeplearning/Dockerfile_caffe" make image; fi
 
+	if [ "$(name)" = "tensorflow" ]; \
+		then DOCKERFILE_PATH="./tensorflow/Dockerfile" make image; fi
+
 	if [ "$(name)" = "s3cmd" ]; \
 		then DOCKERFILE_PATH="./s3cmd/Dockerfile-centos-s3cmd" make image; fi
 
@@ -142,6 +146,10 @@ test:
 
 	if [ "$(image)" = "marmotcai/opencv" ]; \
 		then docker run -ti -v $(shell pwd)/opencv/data/:/root/output $(image) /bin/bash ; \
+	exit 0; fi
+
+	if [ "$(image)" = "marmotcai/tensorflow" ]; \
+		then docker run -it --rm -p 8888:8888 -v $(shell pwd)/tensorflow/data/:/home/jovyan/work/data $(image) ; \
 	exit 0; fi
 
 	docker run --rm -ti $(image) /bin/bash
