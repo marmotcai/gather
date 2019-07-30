@@ -94,7 +94,9 @@ case $cmd in
 
       if [[ $param =~ 'tensorflow' ]]; then
 	docker rm -f my-tensorflow
-	docker run --name my-tensorflow -it -d -v $PWD/data/tensorflow:/tf -p 8888:8888 lspvic/tensorboard-notebook
+        docker run --name my-tensorflow -it -d -v $PWD/data/tensorflow:/home/jovyan/work/data -p 8888:8888 marmotcai/tensorflow
+        docker exec my-tensorflow chown jovyan.users /home/jovyan/work/data -R 
+	# docker run --name my-tensorflow -it -d -v $PWD/data/tensorflow:/tf -p 8888:8888 lspvic/tensorboard-notebook
 	# docker run --name my-tensorflow -it -d -v $PWD/data/tensorflow:/tf -p 8888:8888 tensorflow/tensorflow:latest-py3-jupyter
         # docker run --name my-tensorflow -it -d -p 8888:8888 -v $PWD/data/tensorflow:/root/data tensorflow/tensorflow
       fi
