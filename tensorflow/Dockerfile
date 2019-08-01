@@ -14,5 +14,6 @@ RUN pip install plotly
 RUN pip install arrow
 RUN pip install tflearn
 
-USER root
+USER $NB_USER
+# USER root
 # RUN chown jovyan.users data -R
