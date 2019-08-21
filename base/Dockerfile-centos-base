@@ -15,7 +15,7 @@ RUN yum clean all && \
 # yum install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
 # subscription-manager repos --enable "rhel-*-optional-rpms" --enable "rhel-*-extras-rpms"  --enable "rhel-ha-for-rhel-*-server-rpms"
 
-RUN yum update -y && yum install -y vim wget sudo git openssh openssh-server openssh-clients
+RUN yum update -y && yum install -y vim wget sudo git openssh openssh-server openssh-clients openssl-devel
 
 RUN mkdir /var/run/sshd
 RUN ssh-keygen -t rsa -f /etc/ssh/ssh_host_rsa_key
@@ -28,6 +28,31 @@ RUN /bin/echo -e "LANG=\"en_US.UTF-8\"" > /etc/default/local
 # RUN /bin/echo -e "LANG=\"zh_CN.UTF-8\"" > /etc/default/local
 
 RUN systemctl enable sshd.service
+
+# ENV WORK_DIR=/root
+# ENV OPENSSL_URL=https://www.openssl.org/source/openssl-1.0.2s.tar.gz
+# ENV OPENSSL_SRC=$WORK_DIR/openssl-1.0.2s
+
+# RUN wget -O ${WORK_DIR}/openssl.tar.gz ${OPENSSL_URL} && \
+#     tar -zxvf ${WORK_DIR}/openssl.tar.gz -C ${WORK_DIR}
+
+# RUN cd ${OPENSSL_SRC} && \
+#     ./config --prefix=/usr/local/openssl no-zlib && \
+#     make && \
+#     make install
+
+# RUN mv /usr/bin/openssl /usr/bin/openssl.bak && \
+#    mv /usr/include/openssl/ /usr/include/openssl.bak
+
+# RUN ln -s /usr/local/openssl/include/openssl /usr/include/openssl && \
+#     ln -s /usr/local/openssl/lib/libssl.so.1.1 /usr/local/lib64/libssl.so && \
+#     ln -s /usr/local/openssl/bin/openssl /usr/bin/openssl
+
+# RUN echo "/usr/local/openssl/lib" >> /etc/ld.so.conf && \
+#     ldconfig -v
+# rm -f ${WORK_DIR}/openssl.tar.gz
+# rm -rf ${OPENSSL_SRC}
+# RUN openssl version
 
 #向容器安装中文编码支持
 RUN  yum -y install kde-l10n-Chinese telnet && \
