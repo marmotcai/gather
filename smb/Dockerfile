@@ -2,7 +2,7 @@ FROM marmotcai/ubuntu-base as smb
 
 MAINTAINER marmotcai "marmotcai@163.com"
 
-VOLUME /srv
+VOLUME /share
 EXPOSE 137 138 139 445
 
 ENV DEBIAN_FRONTEND noninteractive

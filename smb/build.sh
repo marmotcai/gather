@@ -8,6 +8,6 @@ docker run -ti -d \
                --publish 137:137 \
                --publish 138:138 \
                --publish 139:139 \
-               --volume ${1:-`pwd`}:/srv \
+               --volume ${1:-`pwd`}:/share \
                --env workgroup=${2:-workgroup} \
                marmotcai/smb
