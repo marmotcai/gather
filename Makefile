@@ -22,6 +22,9 @@ help:
 		echo "         make build-image name=caffe tag=caffe image=marmotcai/caffe"
 		echo "         make build-image name=tensorflow tag=tensorflow image=marmotcai/tensorflow"
 		echo "         make build-image name=s3cmd tag=s3cmd image=marmotcai/s3cmd"
+		echo "         make build-image name=nfs tag=nfs image=marmotcai/nfs"
+		echo "         make build-image name=smb tag=smb image=marmotcai/smb"
+		echo "         make build-image name=vnc tag=vnc image=marmotcai/ubuntu-vnc"
 		echo "         make build-image name=mysql tag=mysql image=marmotcai/mysql"
 		echo "         make build-image name=redis tag=redis image=marmotcai/redis"
 		echo "         make build-image name=nginx tag=nginx image=marmotcai/nginx"
@@ -93,6 +96,15 @@ build-image:
 	if [ "$(name)" = "s3cmd" ]; \
 		then DOCKERFILE_PATH="./s3cmd/Dockerfile-centos-s3cmd" make image; fi
 
+	if [ "$(name)" = "nfs" ]; \
+		then DOCKERFILE_PATH="./nfs/Dockerfile" make image; fi
+
+	if [ "$(name)" = "smb" ]; \
+		then DOCKERFILE_PATH="./smb/Dockerfile" make image; fi
+
+	if [ "$(name)" = "vnc" ]; \
+		then DOCKERFILE_PATH="./vnc/Dockerfile" make image; fi
+
 	if [ "$(name)" = "mysql" ]; \
 		then cd server; sh build.sh mysql; cd ..; exit 0; fi
 	
@@ -104,6 +116,8 @@ build-image:
 
 	if [ "$(name)" = "nginx" ]; \
 		then cd server; sh build.sh nginx; cd ..;  exit 0; fi
+
+
 image:
 
 	echo $(name) '-' $(tag) '>>' $(image)
@@ -152,6 +166,10 @@ test:
 		then docker run -it --rm -p 8888:8888 -v $(shell pwd)/tensorflow/data/:/home/jovyan/work/data $(image) ; \
 	exit 0; fi
 
+	if [ "$(image)" = "marmotcai/nfs" ]; \
+		then docker run -it -d -p 111:111/udp -p 2049:2049 --name my-nfs --privileged marmotcai/nfs /root/share /root/share2 ; \
+	exit 0; fi
+	
 	docker run --rm -ti $(image) /bin/bash
 
 
