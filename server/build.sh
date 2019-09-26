@@ -85,6 +85,15 @@ case $cmd in
                    jpillora/dnsmasq
       fi
 
+      if [[ $param =~ 'iscsi' ]]; then
+        docker run -d --name=my-iscsi \
+                   --name my-iscsi \
+                   --net=host \
+                   -v $PWD/data/iscsi/targets:/iscsi/targets \
+                   dreamcat4/iscsi
+      fi
+
+
       if [[ $param =~ 'crosstools' ]]; then
         docker run -d \
                    --name my-crosstools \
@@ -123,6 +132,7 @@ esac
     echo "use: sh build.sh run nginx"
     echo "use: sh build.sh run jumpserver"
     echo "use: sh build.sh run dnsmasq"
+    echo "use: sh build.sh run iscsi"
     echo "use: sh build.sh run crosstools"
     echo "use: sh build.sh run tensorflow"
     echo "---"
