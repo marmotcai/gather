@@ -21,6 +21,7 @@ help:
 		echo "         make build-image name=opencv tag=opencv image=marmotcai/opencv"
 		echo "         make build-image name=caffe tag=caffe image=marmotcai/caffe"
 		echo "         make build-image name=tensorflow tag=tensorflow image=marmotcai/tensorflow"
+		echo "         make build-image name=iscsisvr tag=iscsisvr image=marmotcai/iscsisvr"
 		echo "         make build-image name=s3cmd tag=s3cmd image=marmotcai/s3cmd"
 		echo "         make build-image name=mysql tag=mysql image=marmotcai/mysql"
 		echo "         make build-image name=redis tag=redis image=marmotcai/redis"
@@ -89,6 +90,12 @@ build-image:
 
 	if [ "$(name)" = "tensorflow" ]; \
 		then DOCKERFILE_PATH="./tensorflow/Dockerfile" make image; fi
+
+	if [ "$(name)" = "iscsisvr" ]; \
+		then DOCKERFILE_PATH="./iscsi/Dockerfile" make image; fi
+
+	if [ "$(name)" = "iscsicli" ]; \
+		then DOCKERFILE_PATH="./iscsi/Dockerfile" make image; fi
 
 	if [ "$(name)" = "s3cmd" ]; \
 		then DOCKERFILE_PATH="./s3cmd/Dockerfile-centos-s3cmd" make image; fi
