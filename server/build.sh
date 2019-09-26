@@ -86,13 +86,20 @@ case $cmd in
       fi
 
       if [[ $param =~ 'iscsi' ]]; then
-        docker run -d --name=my-iscsi \
+        docker run -d -it \
                    --name my-iscsi \
                    --net=host \
                    -v $PWD/data/iscsi/targets:/iscsi/targets \
                    dreamcat4/iscsi
       fi
 
+
+      if [[ $param =~ 'pxe' ]]; then
+        docker run -d --name=my-pxe \
+                   --net=host \
+                   -v $PWD/data/pxe:/pxe \
+                   dreamcat4/pxe
+      fi
 
       if [[ $param =~ 'crosstools' ]]; then
         docker run -d \
@@ -133,6 +140,7 @@ esac
     echo "use: sh build.sh run jumpserver"
     echo "use: sh build.sh run dnsmasq"
     echo "use: sh build.sh run iscsi"
+    echo "use: sh build.sh run pxe"
     echo "use: sh build.sh run crosstools"
     echo "use: sh build.sh run tensorflow"
     echo "---"
