@@ -19,6 +19,7 @@ help:
 		echo "         make build-image name=python tag=python-builder image=marmotcai/python-builder"
 		echo "         make build-image name=crosstool tag=crosstool image=marmotcai/crosstool"
 		echo "         make build-image name=opencv tag=opencv image=marmotcai/opencv"
+		echo "         make build-image name=openpose tag=openpose image=marmotcai/openpose"
 		echo "         make build-image name=caffe tag=caffe image=marmotcai/caffe"
 		echo "         make build-image name=tensorflow tag=tensorflow image=marmotcai/tensorflow"
 		echo "         make build-image name=iscsisvr tag=iscsisvr image=marmotcai/iscsisvr"
@@ -87,6 +88,9 @@ build-image:
 	
 	if [ "$(name)" = "opencv" ]; \
 		then DOCKERFILE_PATH="./opencv/Dockerfile" make image; fi
+
+	if [ "$(name)" = "openpose" ]; \
+		then DOCKERFILE_PATH="./openpose/Dockerfile" make image; fi
 
 	if [ "$(name)" = "caffe" ]; \
 		then DOCKERFILE_PATH="./deeplearning/Dockerfile_caffe" make image; fi
