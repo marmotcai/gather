@@ -26,12 +26,18 @@ case $cmd in
 
     run)
       if [[ $param =~ 'mysql' ]]; then
-        docker run -p 33306:3306 --name my-mysql -v $PWD/data/mysql/conf:/etc/mysql/conf.d -v $PWD/data/mysql/logs:/logs -v $PWD/data/mysql/data:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=cg112233 -d mysql:5.7
+        docker rm -f my-mysql
+        docker run -p 3306:3306 --name my-mysql -v $PWD/data/mysql/conf:/etc/mysql/conf.d -v $PWD/data/mysql/logs:/logs -v $PWD/data/mysql/data:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=112233 -d mysql:5.7
       fi
 
       if [[ $param =~ 'redis' ]]; then
         docker rm -f my-redis
-        docker run -p 36379:6379 --name my-redis -v $PWD/data/redis:/data -d --restart=always redis redis-server --appendonly yes # --requirepass "cg112233"
+        docker run -p 6379:6379 --name my-redis -v $PWD/data/redis:/data -d --restart=always redis redis-server --appendonly yes --requirepass "112233"
+      fi;
+
+      if [[ $param =~ 'postgresql' ]]; then
+        docker rm -f my-postgresql
+        docker run --name my-postgresql -e POSTGRES_PASSWORD=112233 -p 5432:5432 -v $PWD/data/pgdata:/var/lib/postgresql/data -d postgres:9.6
       fi;
 
       if [[ $param =~ 'ftp' ]]; then
@@ -108,6 +114,29 @@ case $cmd in
                    marmotcai/opencv-cross 
       fi
 
+      if [[ $param =~ 'plex' ]]; then
+        docker rm -f my-plex
+        docker run -d \
+                   --name my-plex \
+                   -p 32400:32400/tcp \
+                   -p 3005:3005/tcp \
+                   -p 8324:8324/tcp \
+                   -p 32469:32469/tcp \
+                   -p 1900:1900/udp \
+                   -p 32410:32410/udp \
+                   -p 32412:32412/udp \
+                   -p 32413:32413/udp \
+                   -p 32414:32414/udp \
+                   -e TZ="" \
+                   -e PLEX_CLAIM="" \
+                   -e ADVERTISE_IP="http://test.lan.tcyhtv.cn:32400/" \
+                   -h my-plex \
+                   -v $PWD/data/plex:/config \
+                   -v $PWD/data/plex:/transcode \
+                   -v $PWD/data/plex:/data \
+                   plexinc/pms-docker
+      fi
+
       if [[ $param =~ 'tensorflow' ]]; then
 	docker rm -f my-tensorflow
         docker run --name my-tensorflow -it -d -v $PWD/data/tensorflow:/home/jovyan/work/data -p 8888:8888 marmotcai/tensorflow
@@ -134,6 +163,7 @@ esac
     echo "---"
     echo "use: sh build.sh run mysql"
     echo "use: sh build.sh run redis"
+    echo "use: sh build.sh run postgresql"
     echo "use: sh build.sh run ftp"
     echo "use: sh build.sh run minio"
     echo "use: sh build.sh run nginx"
@@ -142,6 +172,7 @@ esac
     echo "use: sh build.sh run iscsi"
     echo "use: sh build.sh run pxe"
     echo "use: sh build.sh run crosstools"
+    echo "use: sh build.sh run plex"
     echo "use: sh build.sh run tensorflow"
     echo "---"
     echo "use: sh build.sh test imagesname"
