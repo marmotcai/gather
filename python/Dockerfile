@@ -1,41 +1,92 @@
-FROM python AS python-builder
+FROM python:3 AS base
 
 MAINTAINER marmotcai "marmotcai@163.com"
 
-RUN apt update && \
-    apt install -y vim
+#######################################################
 
 RUN sed -i '$a\alias ll=\"ls -alF\"' ~/.bashrc
 RUN sed -i '$a\alias la=\"ls -A\"' ~/.bashrc
 RUN sed -i '$a\alias l=\"ls -CF\"' ~/.bashrc
 
+RUN apt-get update && \
+    apt-get install -y wget vim openssh-server && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && \
+    apt-get autoremove -y && \
+    apt-get clean
+
+RUN sed -i 's/PermitRootLogin prohibit-password/PermitRootLogin yes/g' /etc/ssh/sshd_config && \
+    sed -i 's/PermitRootLogin without-password/PermitRootLogin yes/g' /etc/ssh/sshd_config && \
+    sed -i 's/#PermitRootLogin yes/PermitRootLogin yes/g' /etc/ssh/sshd_config && \
+    sed -i 's/UsePAM yes/UsePAM no/g' /etc/ssh/sshd_config && \
+    echo "root:112233" | chpasswd && \
+    mkdir /var/run/sshd
+
+EXPOSE 22
+
+CMD ["/usr/sbin/sshd", "-D"]
+
+#######################################################
+
+FROM base AS python-base
+
+ARG REQUIREMENTS_URL="NULL"
+
 ENV WORK_DIR=/root
 WORKDIR ${WORK_DIR}
 
-ENV BASE_APP_NAME=easyquotation
-ENV BASE_GIT_URL=https://github.com/shidenggui/easyquotation.git
+RUN pip install --upgrade pip
 
-RUN git clone $BASE_GIT_URL
+RUN echo ${REQUIREMENTS_URL}
+RUN if [ "${REQUIREMENTS_URL}" != "NULL" ] ; then wget -O requirements.txt ${REQUIREMENTS_URL} ; \
+						  # pip install -i ${PIP_INDEX_URL} --no-cache-dir -r requirements.txt ; \
+						  pip install --no-cache-dir -r requirements.txt ; \
+						  fi
 
-RUN cd $BASE_APP_NAME && \
-    python setup.py install
+#######################################################
 
-ENV WORK_DIR=/root/stock
-WORKDIR ${WORK_DIR}
-COPY data/stock/ ${WORK_DIR}
+FROM python-base AS python-jupyter-notebook
 
-# ENV MYSQL_PYTHON_URL="https://nchc.dl.sourceforge.net/project/mysql-python/mysql-python-test/1.2.4b4/MySQL-python-1.2.2.tar.gz"
-# RUN wget -O ${WORK_DIR}/mysql_python_url.tar.gz ${MYSQL_PYTHON_URL} && \
-#     tar -zxvf ${WORK_DIR}/MySQL-python.tar.gz -C ${WORK_DIR}/MySQL-python && \
-#     rm -f ${WORK_DIR}/MySQL-python.tar.gz && cd ${WORK_DIR}/MySQL-python && \
-#     python setup.py build && python setup.py install
+ENV PIP_ALIYUN_URL="https://mirrors.aliyun.com/pypi/simple"
+ENV PIP_TSINGHUA_URL="https://pypi.tuna.tsinghua.edu.cn/simple"
 
-# RUN python -m pip install --upgrade --force pip
-# RUN pip install setuptools==33.1.1
-# RUN pip install distribute
+ENV APP_PATH=${WORK_DIR}/data
 
-# RUN pip install MySQL-python
+WORKDIR $APP_PATH
 
-WORKDIR $WORK_DIR
+RUN pip install -i ${PIP_ALIYUN_URL} jupyter
 
-ENTRYPOINT [ "python3.7", "main.py" ]
+RUN jupyter notebook --generate-config
+
+ENV JUPYTER_NOTEBOOK_CONFIG "/root/.jupyter/jupyter_notebook_config.py"
+
+RUN sed -i '/#c.NotebookApp.ip/a\c.NotebookApp.ip = "0.0.0.0"' ${JUPYTER_NOTEBOOK_CONFIG}
+RUN cat ${JUPYTER_NOTEBOOK_CONFIG} | grep c.NotebookApp.ip
+
+RUN sed -i '/#c.NotebookApp.notebook_dir/a\c.NotebookApp.notebook_dir = "/root/data"' ${JUPYTER_NOTEBOOK_CONFIG}
+RUN cat ${JUPYTER_NOTEBOOK_CONFIG} | grep c.NotebookApp.notebook_dir
+
+RUN sed -i '/#c.NotebookApp.open_browser/a\c.NotebookApp.open_browser = True' ${JUPYTER_NOTEBOOK_CONFIG}
+RUN cat ${JUPYTER_NOTEBOOK_CONFIG} | grep c.NotebookApp.open_browser
+
+RUN sed -i '/#c.ConnectionFileMixin.ip/a\c.ConnectionFileMixin.ip = "*"' ${JUPYTER_NOTEBOOK_CONFIG}
+RUN cat ${JUPYTER_NOTEBOOK_CONFIG} | grep c.ConnectionFileMixin.ip
+
+RUN sed -i '/#c.NotebookApp.port/a\c.NotebookApp.port = 8888' ${JUPYTER_NOTEBOOK_CONFIG}
+RUN cat ${JUPYTER_NOTEBOOK_CONFIG} | grep c.NotebookApp.port
+
+
+VOLUME $APP_PATH
+
+RUN echo $APP_PATH
+
+#######################################################
+
+EXPOSE 22 8888
+
+CMD ["jupyter", "notebook", "--allow-root"]
+# CMD ["/usr/sbin/sshd", "-D"]
+
+#######################################################
+
+
+

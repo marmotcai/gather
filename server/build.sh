@@ -137,6 +137,14 @@ case $cmd in
                    plexinc/pms-docker
       fi
 
+      if [[ $param =~ 'jupyter' ]]; then
+        docker run -d \
+                   --name my-jupyter \
+                   -p 8888:8888 \
+                   jupyter/datascience-notebook
+      fi
+
+
       if [[ $param =~ 'tensorflow' ]]; then
 	docker rm -f my-tensorflow
         docker run --name my-tensorflow -it -d -v $PWD/data/tensorflow:/home/jovyan/work/data -p 8888:8888 marmotcai/tensorflow
@@ -173,6 +181,7 @@ esac
     echo "use: sh build.sh run pxe"
     echo "use: sh build.sh run crosstools"
     echo "use: sh build.sh run plex"
+    echo "use: sh build.sh run jupyter"
     echo "use: sh build.sh run tensorflow"
     echo "---"
     echo "use: sh build.sh test imagesname"
