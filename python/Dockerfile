@@ -31,23 +31,32 @@ FROM base AS python-base
 
 ARG REQUIREMENTS_URL="NULL"
 
+ENV PIP_ALIYUN_URL="https://mirrors.aliyun.com/pypi/simple"
+ENV PIP_TSINGHUA_URL="https://pypi.tuna.tsinghua.edu.cn/simple"
+
 ENV WORK_DIR=/root
 WORKDIR ${WORK_DIR}
 
-RUN pip install --upgrade pip
+RUN pip install -i ${PIP_ALIYUN_URL} --upgrade pip && \
+    pip -V && python -V
+
+# RUN pip install --upgrade pip
+
+ADD requirements.txt .
+RUN pip install -i ${PIP_ALIYUN_URL} -r requirements.txt
 
 RUN echo ${REQUIREMENTS_URL}
 RUN if [ "${REQUIREMENTS_URL}" != "NULL" ] ; then wget -O requirements.txt ${REQUIREMENTS_URL} ; \
 						  # pip install -i ${PIP_INDEX_URL} --no-cache-dir -r requirements.txt ; \
 						  pip install --no-cache-dir -r requirements.txt ; \
 						  fi
+EXPOSE 22
+
+CMD ["/usr/sbin/sshd", "-D"]
 
 #######################################################
 
 FROM python-base AS python-jupyter-notebook
-
-ENV PIP_ALIYUN_URL="https://mirrors.aliyun.com/pypi/simple"
-ENV PIP_TSINGHUA_URL="https://pypi.tuna.tsinghua.edu.cn/simple"
 
 ENV APP_PATH=${WORK_DIR}/data
 
@@ -73,7 +82,6 @@ RUN cat ${JUPYTER_NOTEBOOK_CONFIG} | grep c.ConnectionFileMixin.ip
 
 RUN sed -i '/#c.NotebookApp.port/a\c.NotebookApp.port = 8888' ${JUPYTER_NOTEBOOK_CONFIG}
 RUN cat ${JUPYTER_NOTEBOOK_CONFIG} | grep c.NotebookApp.port
-
 
 VOLUME $APP_PATH
 
