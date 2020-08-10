@@ -14,7 +14,7 @@ RUN wget -O ${NGINX_PACKETS} ${NGINX_URL} && \
     tar xvf ${NGINX_PACKETS} -C ${NGINX_DIR} && rm ${NGINX_PACKETS}
 
 WORKDIR ${NGINX_DIR}/${NGINX_NAME}
-RUN ./configure --prefix=/usr/local/nginx 
+RUN ./configure --prefix=/usr/local/nginx --with-ipv6
 RUN make && make install
 
 WORKDIR ${NGINX_INSTALLPATH}
@@ -24,6 +24,8 @@ RUN sed -i '1 a\user root;' ./conf/nginx.conf && \
     sed -i '$i include /data/vhost/*.conf;' ./conf/nginx.conf
 
 RUN rm -rf ${NGINX_DIR}/${NGINX_NAME}
+
+RUN /usr/local/nginx/sbin/nginx -V
 
 EXPOSE 80
 
