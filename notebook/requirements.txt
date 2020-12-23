@@ -1,0 +1,6 @@
+# atoml-utility
+jupyter
+tensorflow
+jupyter
+pandas
+numpy
